@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "272707929847",
+    "firebase_url": "https://robowizzard-97af3.firebaseio.com",
+    "project_id": "robowizzard-97af3",
+    "storage_bucket": "robowizzard-97af3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:272707929847:android:acd7044e6edc92bf",
+        "android_client_info": {
+          "package_name": "org.webb.robowizzard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "272707929847-03a44816mrgrlu6g4hc84j51ja24oh16.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.webb.robowizzard",
+            "certificate_hash": "0C47BF655B3BCC6C41DF58EDCCC2469F820C66AC"
+          }
+        },
+        {
+          "client_id": "272707929847-477gcu3japhs7ojnm38i023feh8battg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWplyoSutjAWiQxWzUHkPUpCLydw1tqr0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "272707929847-477gcu3japhs7ojnm38i023feh8battg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
