@@ -54,8 +54,11 @@ import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DeviceManager;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.Utility;
+import com.qualcomm.robotcore.hardware.configuration.WriteXMLFileHandler;
 import com.qualcomm.robotcore.util.SerialNumber;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -64,18 +67,19 @@ import java.util.Map;
 
 public abstract class BaseActivity extends AppCompatActivity {
     public static Point screenSize;
-    static String currentLayoutFile;
+    static String savedFilename;
+    static String currentFilename;
     static Map<SerialNumber, ControllerConfiguration> currentLayout, savedLayout;
     static boolean running;
     private static List<MenuItem> toggleCallback;
-    private DialogInterface.OnClickListener dummyListener = new DialogInterface.OnClickListener() {
+    DialogInterface.OnClickListener dummyListener = new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int button) {
         }
     };
     Utility util;
 
 
-    final static String DEFAULT_SERIAL_NUMBER = "CHANGE THIS SERIAL NUMBER BEFORE SAVING";
+    final static SerialNumber DEFAULT_SERIAL_NUMBER = new SerialNumber("CHANGE THIS SERIAL NUMBER BEFORE SAVING");
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -136,7 +140,29 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     public void save() {
-
+        WriteXMLFileHandler handler = new WriteXMLFileHandler(this);
+        if(savedLayout.equals(currentLayout) && savedFilename.equals(currentFilename)) {
+            return;
+        }
+        ArrayList<ControllerConfiguration> controllers = new ArrayList<>();
+        Iterator iterator = currentLayout.entrySet().iterator();
+        while(iterator.hasNext()) {
+            controllers.add((ControllerConfiguration) ((Map.Entry) iterator.next()).getValue());
+        }
+        try {
+            handler.writeToFile(handler.writeXml(controllers), Utility.CONFIG_FILES_DIR, currentFilename);
+        }
+        catch (RobotCoreException e) {
+            util.complainToast(e.getMessage(), this);
+        }
+        catch (IOException e) {
+            AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change duplicate controller names.");
+            builder.setNeutralButton("Ok", dummyListener);
+            builder.show();
+        }
+        savedFilename = currentFilename;
+        savedLayout = new HashMap<>(currentLayout);
+        util.confirmSave();
     }
 
     protected void scan() {
@@ -222,5 +248,11 @@ public abstract class BaseActivity extends AppCompatActivity {
     private void toggleIcon(MenuItem item) {
         item.setIcon((running) ? R.drawable.ic_stop : R.drawable.ic_start);
         item.setTitle((running) ? R.string.toolbar_stop : R.string.toolbar_run);
+    }
+
+    public static File getFile(String filename) {
+        filename = Utility.CONFIG_FILES_DIR + filename + Utility.FILE_EXT;
+        filename = filename.trim();
+        return new File(filename);
     }
 }

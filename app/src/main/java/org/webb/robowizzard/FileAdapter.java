@@ -38,7 +38,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -50,6 +49,7 @@ import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.hardware.configuration.Utility;
 import com.qualcomm.robotcore.util.SerialNumber;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -153,11 +153,12 @@ public class FileAdapter extends BaseAdapter{
                     activeId = -1;
                     return;
                 }
-                BaseActivity.currentLayoutFile = mList.get(position);
+                BaseActivity.savedFilename = mList.get(position);
+                BaseActivity.currentFilename = mList.get(position);
                 ReadXMLFileHandler readXMLFileHandler = new ReadXMLFileHandler(activity);
                 FileInputStream fileInputStream = null;
                 try {
-                    fileInputStream = new FileInputStream(Utility.CONFIG_FILES_DIR + BaseActivity.currentLayoutFile + ".xml");
+                    fileInputStream = new FileInputStream(Utility.CONFIG_FILES_DIR + BaseActivity.savedFilename + ".xml");
                     Iterator iterator = ((ArrayList)readXMLFileHandler.parse(fileInputStream)).iterator();
                     BaseActivity.savedLayout = new HashMap<SerialNumber, ControllerConfiguration>();
                     while(iterator.hasNext()) {
@@ -188,6 +189,13 @@ public class FileAdapter extends BaseAdapter{
                     public void run() {
                         if(activeId == getItemId(position)) {
                             activeId = -1;
+                        }
+                        File file = BaseActivity.getFile((String) getItem(position));
+                        if(file.exists() && file.delete()) {
+                            Toast.makeText(activity, "File Deleted", Toast.LENGTH_SHORT).show();
+                        }
+                        else {
+                            Toast.makeText(activity, "File Delete Failed", Toast.LENGTH_SHORT).show();
                         }
                         FileAdapter.this.remove((String) getItem(position));
                         FileAdapter.super.notifyDataSetChanged();

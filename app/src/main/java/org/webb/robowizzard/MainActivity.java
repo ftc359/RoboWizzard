@@ -59,7 +59,8 @@ public class MainActivity extends BaseActivity {
         mList = util.getXMLFiles();
         ListView mListView = (ListView) findViewById(R.id.layoutList);
         mListView.setAdapter(new FileAdapter(this, mList));
-        currentLayoutFile = null;
+        savedFilename = null;
+        currentFilename = null;
         savedLayout = null;
         currentLayout = null;
         running = false;
@@ -81,7 +82,8 @@ public class MainActivity extends BaseActivity {
                 switch(menuItem.getItemId()){
                     case R.id.newLayout:
                         makeToast(MainActivity.this, "New Layout");
-                        currentLayoutFile = "";
+                        savedFilename = "";
+                        currentFilename = "";
                         savedLayout = new HashMap<SerialNumber, ControllerConfiguration>();
                         currentLayout = new HashMap<SerialNumber, ControllerConfiguration>();
                         startActivity(new Intent(MainActivity.this, ControllerConfigurationActivity.class));
