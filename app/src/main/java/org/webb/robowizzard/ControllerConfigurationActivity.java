@@ -131,7 +131,6 @@ public class ControllerConfigurationActivity extends BaseActivity {
                         return false;
                 }
                 current.setLayout(controllerAdapter.parseLayout());
-                makeToast(ControllerConfigurationActivity.this, controllerAdapter.getCount()+" "+current.size()+" "+(current.hasDuplicates()?"true":"false"));
                 return true;
             }
         });
@@ -233,7 +232,6 @@ public class ControllerConfigurationActivity extends BaseActivity {
                 builder.show();
             }
             else {
-                makeToast(this, saved.get(0).getName() + " " + current.get(0).getName());
                 super.onBackPressed();
                 overridePendingTransition(R.anim.fade_in, R.anim.slide_out_horizontal);
             }

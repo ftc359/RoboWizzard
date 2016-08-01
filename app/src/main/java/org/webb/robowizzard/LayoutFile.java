@@ -269,9 +269,9 @@ public class LayoutFile implements  Iterable<ControllerConfiguration>{
 
     private class Controller extends ControllerConfiguration {
         public Controller(ControllerConfiguration controller) {
-            super(controller.getName(), controller.getSerialNumber(), controller.getType());
-            List<DeviceConfiguration> deviceList = new ArrayList<>();
+            super(controller.getName(), new SerialNumber(controller.getSerialNumber().toString()), controller.getType());
 
+            List<DeviceConfiguration> deviceList = new ArrayList<>();
             for(DeviceConfiguration device : controller.getDevices()) {
                 deviceList.add(new DeviceConfiguration(device.getPort(), device.getType(), device.getName(), device.isEnabled()));
             }

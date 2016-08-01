@@ -91,24 +91,6 @@ public abstract class BaseActivity extends AppCompatActivity {
             screenSize = new Point();
         }
         ((WindowManager) this.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getSize(screenSize);
-        makeToast(this, test(new Test2()));
-    }
-
-    public String test(Test test) {
-        return test.getString();
-    }
-
-    private class Test {
-        String getString() {
-            return "test";
-        }
-    }
-
-    private class Test2 extends Test {
-        @Override
-        String getString() {
-            return "test2";
-        }
     }
 
     @Override
