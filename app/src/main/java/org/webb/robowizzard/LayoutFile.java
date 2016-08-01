@@ -34,9 +34,11 @@
 package org.webb.robowizzard;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
+import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.hardware.configuration.Utility;
 import com.qualcomm.robotcore.util.SerialNumber;
@@ -46,6 +48,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 public class LayoutFile implements  Iterable<ControllerConfiguration>{
     private String filename;
@@ -55,9 +58,12 @@ public class LayoutFile implements  Iterable<ControllerConfiguration>{
 
     public LayoutFile(LayoutFile layoutFile) {
         this.filename = layoutFile.getFilename();
-        this.layoutList = new ArrayList<>(layoutFile.getLayoutList());
-        this.layoutMap = new HashMap<>(layoutFile.getLayoutMap());
-        this.duplicates = new ArrayList<>(layoutFile.getDuplicates());
+        this.layoutList = new ArrayList<>();
+        this.layoutMap = new HashMap<>();
+        this.duplicates = new ArrayList<>();
+        for(ControllerConfiguration controller : layoutFile.layoutList) {
+            this.add(new Controller(controller));
+        }
     }
 
     public LayoutFile() {
@@ -239,7 +245,69 @@ public class LayoutFile implements  Iterable<ControllerConfiguration>{
         return layoutList.iterator();
     }
 
-    public boolean equals(LayoutFile layoutFile) {
-        return this.filename.equals(layoutFile.getFilename()) && this.layoutList.equals(layoutFile.getLayoutList()) && this.layoutMap.equals(layoutFile.getLayoutMap()) && this.duplicates.equals(layoutFile.getDuplicates());
+    @Override
+    public boolean equals(final Object obj) {
+        if(this == obj) return true;
+        if(obj == null || !(obj instanceof LayoutFile)) return false;
+
+        LayoutFile layoutFile = (LayoutFile) obj;
+
+        if(this.filename == null || layoutFile.filename == null) return false;
+        else if(!this.filename.equals(layoutFile.filename)) return false;
+
+        if(this.layoutList == null || layoutFile.layoutList == null) return false;
+        else if(!this.layoutList.equals(layoutFile.layoutList)) return false;
+
+        if(this.layoutMap == null || layoutFile.layoutMap == null) return false;
+        else if(!this.layoutMap.equals(layoutFile.layoutMap)) return false;
+
+        if(this.duplicates == null || layoutFile.duplicates == null) return false;
+        else if(!this.duplicates.equals(layoutFile.duplicates)) return false;
+
+        return true;
+    }
+
+    private class Controller extends ControllerConfiguration {
+        public Controller(ControllerConfiguration controller) {
+            super(controller.getName(), controller.getSerialNumber(), controller.getType());
+            List<DeviceConfiguration> deviceList = new ArrayList<>();
+
+            for(DeviceConfiguration device : controller.getDevices()) {
+                deviceList.add(new DeviceConfiguration(device.getPort(), device.getType(), device.getName(), device.isEnabled()));
+            }
+            this.addDevices(deviceList);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if(this == obj) return true;
+            if(obj == null || !(obj instanceof ControllerConfiguration)) return false;
+
+            ControllerConfiguration controller = (ControllerConfiguration) obj;
+
+            if(!this.getName().equals(controller.getName())) return false;
+
+            if(!this.getSerialNumber().equals(controller.getSerialNumber())) return false;
+
+            if(this.getType() != controller.getType()) return false;
+
+            if(this.getDevices().size() != controller.getDevices().size()) return false;
+
+            //Since DeviceConfiguration has no overridden equals method we have to compare it ourselves
+            for(int index = 0; index < this.getDevices().size(); index++) {
+                DeviceConfiguration myDevice = this.getDevices().get(index);
+                DeviceConfiguration otherDevice = controller.getDevices().get(index);
+
+                if(!myDevice.getName().equals(otherDevice.getName())) return false;
+
+                if(myDevice.getPort() != otherDevice.getPort()) return  false;
+
+                if(myDevice.getType() != otherDevice.getType()) return false;
+
+                if(myDevice.isEnabled() != otherDevice.isEnabled()) return false;
+            }
+
+            return true;
+        }
     }
 }

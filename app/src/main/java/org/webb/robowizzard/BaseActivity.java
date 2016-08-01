@@ -53,6 +53,7 @@ import com.qualcomm.robotcore.eventloop.EventLoopManager;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DeviceManager;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
+import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.Utility;
 import com.qualcomm.robotcore.hardware.configuration.WriteXMLFileHandler;
 import com.qualcomm.robotcore.util.SerialNumber;
@@ -90,6 +91,24 @@ public abstract class BaseActivity extends AppCompatActivity {
             screenSize = new Point();
         }
         ((WindowManager) this.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getSize(screenSize);
+        makeToast(this, test(new Test2()));
+    }
+
+    public String test(Test test) {
+        return test.getString();
+    }
+
+    private class Test {
+        String getString() {
+            return "test";
+        }
+    }
+
+    private class Test2 extends Test {
+        @Override
+        String getString() {
+            return "test2";
+        }
     }
 
     @Override
@@ -211,13 +230,13 @@ public abstract class BaseActivity extends AppCompatActivity {
                 builder.setNeutralButton("Overwrite", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int button) {
-                        current = new LayoutFile(temp);
+                        current.setLayout(temp.getLayoutList());
                     }
                 });
                 builder.setNegativeButton("Cancel", dummyListener);
             }
             else {
-                current = new LayoutFile(temp);
+                current.setLayout(temp.getLayoutList());
             }
         }
     }
