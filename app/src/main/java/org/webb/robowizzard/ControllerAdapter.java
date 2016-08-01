@@ -35,6 +35,8 @@ package org.webb.robowizzard;
 
 
 import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -44,55 +46,46 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
-import com.qualcomm.robotcore.util.SerialNumber;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 public class ControllerAdapter extends BaseAdapter{
     private Activity activity;
-    private List<Map.Entry> mList;
-    private HashMap<Map.Entry, Integer> mIdMap;
+    private ArrayList<ControllerConfiguration> mList;
+    private HashMap<ControllerConfiguration, Integer> mIdMap;
     private int id;
     private long activeId;
     private int llWidth;
     private ActiveChangeManager mActiveChangeManager;
 
-    public ControllerAdapter(Activity activity, Map<SerialNumber, ControllerConfiguration> layout) {
+    public ControllerAdapter(Activity activity, LayoutFile layout) {
         mActiveChangeManager = new ActiveChangeManager();
         activeId = -1;
         this.activity = activity;
         mList = new ArrayList<>();
-        Iterator iterator = layout.entrySet().iterator();
+        Iterator iterator = layout.iterator();
         id = 0;
         mIdMap = new HashMap<>();
         while(iterator.hasNext()) {
-            add((Map.Entry) iterator.next());
+            add((ControllerConfiguration) iterator.next());
         }
     }
 
-    public void add(Map.Entry entry) {
-        mList.add(entry);
-        mIdMap.put(entry, id++);
+    public void add(ControllerConfiguration controller) {
+        mList.add(controller);
+        mIdMap.put(controller, id++);
         notifyDataSetChanged();
     }
 
-    public void remove(Map.Entry entry) {
-        mList.remove(entry);
-        mIdMap.remove(entry);
+    public void remove(ControllerConfiguration controller) {
+        mList.remove(controller);
+        mIdMap.remove(controller);
     }
 
-    public HashMap<SerialNumber, ControllerConfiguration> parseLayout() {
-        HashMap<SerialNumber, ControllerConfiguration> tempMap = new HashMap<>();
-        Iterator iterator = mList.iterator();
-        while(iterator.hasNext()) {
-            Map.Entry entry = (Map.Entry) iterator.next();
-            tempMap.put((SerialNumber) entry.getKey(), (ControllerConfiguration) entry.getValue());
-        }
-        return tempMap;
+    public ArrayList<ControllerConfiguration> parseLayout() {
+        return mList;
     }
 
     @Override
@@ -112,7 +105,7 @@ public class ControllerAdapter extends BaseAdapter{
 
     @Override
     public long getItemId(int position) {
-        return mIdMap.get((Map.Entry) getItem(position));
+        return mIdMap.get((ControllerConfiguration) getItem(position));
     }
 
     private static class ViewHolder {
@@ -149,7 +142,7 @@ public class ControllerAdapter extends BaseAdapter{
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        viewHolder.controller.setText(((ControllerConfiguration) ((Map.Entry) getItem(position)).getValue()).getName());
+        viewHolder.controller.setText(((ControllerConfiguration) getItem(position)).getName());
         viewHolder.controller.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -158,9 +151,14 @@ public class ControllerAdapter extends BaseAdapter{
                     activeId = -1;
                     return;
                 }
+                BaseActivity.current.setLayout(parseLayout());
+                Intent intent = new Intent(activity, DeviceConfigurationActivity.class);
+                intent.putExtra("CONTROLLER", position);
+                activity.startActivity(intent);
+                activity.overridePendingTransition(R.anim.slide_in_horizontal, R.anim.fade_out);
             }
         });
-        viewHolder.serialNumber.setText(((SerialNumber) ((Map.Entry) getItem(position)).getKey()).getSerialNumber());
+        viewHolder.serialNumber.setText(((ControllerConfiguration) getItem(position)).getSerialNumber().toString());
         viewHolder.delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -171,7 +169,7 @@ public class ControllerAdapter extends BaseAdapter{
                 viewHolder.parent.animate().setDuration(250).translationX(-BaseActivity.screenSize.x).withEndAction(new Runnable() {
                     @Override
                     public void run() {
-                        ControllerAdapter.this.remove((Map.Entry) getItem(position));
+                        ControllerAdapter.this.remove((ControllerConfiguration) getItem(position));
                         ControllerAdapter.super.notifyDataSetChanged();
                     }
                 });

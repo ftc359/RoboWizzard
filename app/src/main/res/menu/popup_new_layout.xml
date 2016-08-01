@@ -37,11 +37,6 @@
         android:id="@+id/newLayout"
         android:title="@string/toolbar_add_layout"
         app:showAsAction="never" />
-
-    <item
-        android:id="@+id/copyLayout"
-        android:title="@string/toolbar_add_copy"
-        app:showAsAction="never" />
     <item
         android:id="@+id/importLayout"
         android:title="@string/toolbar_add_import"

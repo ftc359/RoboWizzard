@@ -61,11 +61,21 @@
     </LinearLayout>
 
     <org.webb.robowizzard.BetterEditText
-        android:id="@+id/deviceName"
+    android:id="@+id/controllerName"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:hint="@string/controller_name"
+    android:maxLines="1"
+    android:inputType="text" />
+
+    <org.webb.robowizzard.BetterEditText
+        android:id="@+id/serialNumber"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/device_name"
+        android:hint="@string/serial_number"
         android:maxLines="1"
+        android:fontFamily="monospace"
+        android:textSize="14sp"
         android:inputType="text" />
 
     <ListView

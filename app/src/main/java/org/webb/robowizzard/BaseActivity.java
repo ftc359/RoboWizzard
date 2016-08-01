@@ -67,9 +67,8 @@ import java.util.Map;
 
 public abstract class BaseActivity extends AppCompatActivity {
     public static Point screenSize;
-    static String savedFilename;
-    static String currentFilename;
-    static Map<SerialNumber, ControllerConfiguration> currentLayout, savedLayout;
+    static LayoutFile current, saved;
+    static ArrayList<ControllerConfiguration> currentSetup;
     static boolean running;
     private static List<MenuItem> toggleCallback;
     DialogInterface.OnClickListener dummyListener = new DialogInterface.OnClickListener() {
@@ -79,7 +78,8 @@ public abstract class BaseActivity extends AppCompatActivity {
     Utility util;
 
 
-    final static SerialNumber DEFAULT_SERIAL_NUMBER = new SerialNumber("CHANGE THIS SERIAL NUMBER BEFORE SAVING");
+    final static String DEFAULT_SERIAL_NUMBER = "SERIAL_NUMBER";
+    final static String RUN_ID = "NULL_LAYOUT";
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -141,16 +141,11 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     public void save() {
         WriteXMLFileHandler handler = new WriteXMLFileHandler(this);
-        if(savedLayout.equals(currentLayout) && savedFilename.equals(currentFilename)) {
+        if(saved.equals(current)) {
             return;
         }
-        ArrayList<ControllerConfiguration> controllers = new ArrayList<>();
-        Iterator iterator = currentLayout.entrySet().iterator();
-        while(iterator.hasNext()) {
-            controllers.add((ControllerConfiguration) ((Map.Entry) iterator.next()).getValue());
-        }
         try {
-            handler.writeToFile(handler.writeXml(controllers), Utility.CONFIG_FILES_DIR, currentFilename);
+            handler.writeToFile(handler.writeXml(current.getLayoutList()), Utility.CONFIG_FILES_DIR, current.getFilename());
         }
         catch (RobotCoreException e) {
             util.complainToast(e.getMessage(), this);
@@ -160,13 +155,13 @@ public abstract class BaseActivity extends AppCompatActivity {
             builder.setNeutralButton("Ok", dummyListener);
             builder.show();
         }
-        savedFilename = currentFilename;
-        savedLayout = new HashMap<>(currentLayout);
+        saved.setFilename(current.getFilename());
+        saved.setLayout(current.getLayoutList());
         util.confirmSave();
     }
 
     protected void scan() {
-        final HashMap<SerialNumber, ControllerConfiguration> tempMap = new HashMap<>();
+        final LayoutFile temp = new LayoutFile();
         try {
             HardwareDeviceManager scanner = new HardwareDeviceManager(this, (EventLoopManager) null);
             Iterator deviceIterator = (scanner.scanForUsbDevices().entrySet()).iterator();
@@ -174,54 +169,55 @@ public abstract class BaseActivity extends AppCompatActivity {
             this.util.resetCount();
             while(deviceIterator.hasNext()) {
                 Map.Entry entry = (Map.Entry) deviceIterator.next();
+                ControllerConfiguration controller = (ControllerConfiguration) entry.getValue();
                 SerialNumber serialNumber = (SerialNumber) entry.getKey();
-                if(currentLayout != null && currentLayout.containsKey(serialNumber)) {
-                    tempMap.put(serialNumber, currentLayout.get(serialNumber));
+                if(current.contains(controller)) {
+                    temp.add(controller);
                 }
                 else {
                     switch((DeviceManager.DeviceType) entry.getValue()) {
                         case MODERN_ROBOTICS_USB_DC_MOTOR_CONTROLLER:
-                            tempMap.put(serialNumber, this.util.buildMotorController(serialNumber));
+                            temp.add(this.util.buildMotorController(serialNumber));
                             break;
                         case MODERN_ROBOTICS_USB_SERVO_CONTROLLER:
-                            tempMap.put(serialNumber, this.util.buildServoController(serialNumber));
+                            temp.add(this.util.buildServoController(serialNumber));
                             break;
                         case MODERN_ROBOTICS_USB_LEGACY_MODULE:
-                            tempMap.put(serialNumber, this.util.buildLegacyModule(serialNumber));
+                            temp.add(this.util.buildLegacyModule(serialNumber));
                             break;
                         case MODERN_ROBOTICS_USB_DEVICE_INTERFACE_MODULE:
-                            tempMap.put(serialNumber, this.util.buildDeviceInterfaceModule(serialNumber));
+                            temp.add(this.util.buildDeviceInterfaceModule(serialNumber));
                             break;
                     }
                 }
             }
         }
         catch(RobotCoreException e){
-            tempMap.clear();
+            temp.clear();
         }
-        if(tempMap.size() == 0) {
+        if(temp.size() == 0) {
             Toast.makeText(this, "No Devices Found", Toast.LENGTH_SHORT).show();
         }
         else {
             Toast.makeText(this, "Scan Complete", Toast.LENGTH_SHORT).show();
-            if(currentLayout != null && currentLayout.size() != 0 && !currentLayout.equals(tempMap)) {
+            if(current.size() != 0 && !current.equals(temp)) {
                 AlertDialog.Builder builder = this.util.buildBuilder("Add or Overwrite", "Pressing \'Add\' will combine the current layout with the scanned one. Pressing \'Overwrite\' will replace the current layout with the scanned one.");
                 builder.setPositiveButton("Add", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int button) {
-                        currentLayout.putAll(tempMap);
+                        current.combine(temp.getLayoutList());
                     }
                 });
                 builder.setNeutralButton("Overwrite", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int button) {
-                        currentLayout = tempMap;
+                        current = new LayoutFile(temp);
                     }
                 });
                 builder.setNegativeButton("Cancel", dummyListener);
             }
             else {
-                currentLayout = tempMap;
+                current = new LayoutFile(temp);
             }
         }
     }

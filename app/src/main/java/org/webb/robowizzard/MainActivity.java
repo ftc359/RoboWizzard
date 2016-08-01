@@ -59,10 +59,8 @@ public class MainActivity extends BaseActivity {
         mList = util.getXMLFiles();
         ListView mListView = (ListView) findViewById(R.id.layoutList);
         mListView.setAdapter(new FileAdapter(this, mList));
-        savedFilename = null;
-        currentFilename = null;
-        savedLayout = null;
-        currentLayout = null;
+        current = new LayoutFile();
+        saved = new LayoutFile();
         running = false;
     }
 
@@ -82,16 +80,10 @@ public class MainActivity extends BaseActivity {
                 switch(menuItem.getItemId()){
                     case R.id.newLayout:
                         makeToast(MainActivity.this, "New Layout");
-                        savedFilename = "";
-                        currentFilename = "";
-                        savedLayout = new HashMap<SerialNumber, ControllerConfiguration>();
-                        currentLayout = new HashMap<SerialNumber, ControllerConfiguration>();
+                        current = new LayoutFile();
+                        saved = new LayoutFile();
                         startActivity(new Intent(MainActivity.this, ControllerConfigurationActivity.class));
                         //overridePendingTransition(R.anim.slide_in_horizontal, R.anim.fade_out);
-                        break;
-                    case R.id.copyLayout:
-                        //TODO: Copy layout
-                        makeToast(MainActivity.this, "Copy Layout");
                         break;
                     case R.id.importLayout:
                         //TODO: Import layout

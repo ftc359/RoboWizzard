@@ -33,15 +33,54 @@
 
 package org.webb.robowizzard;
 
+import android.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+
+import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
+import com.qualcomm.robotcore.util.SerialNumber;
 
 public class DeviceConfigurationActivity extends BaseActivity {
+    private int index;
+    private BetterEditText name, serialNumber;
+    private ControllerConfiguration controller;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_configuration);
         setSupportActionBar((android.support.v7.widget.Toolbar) findViewById(R.id.toolbar));
+        index = getIntent().getIntExtra("CONTROLLER", -1);
+        controller  = current.get(index);
+        name = (BetterEditText) findViewById(R.id.controllerName);
+        name.setText(controller.getName());
+        serialNumber = (BetterEditText) findViewById(R.id.serialNumber);
+        serialNumber.setText(controller.getSerialNumber().toString());
+    }
+
+    public void update() {
+        controller.getSerialNumber().setSerialNumber(serialNumber.getText().toString());
+        controller.setName(name.getText().toString());
+        current.set(index, controller);
+    }
+
+    public void save(View v) {
+        clearFocus();
+        update();
+        if(current.contains(new SerialNumber(DEFAULT_SERIAL_NUMBER))) {
+            AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change the serial number(s) from the default.");
+            builder.setNeutralButton("Ok", dummyListener);
+            builder.show();
+            return;
+        }
+        save();
+    }
+
+    @Override
+    public void onBackPressed() {
+        update();
+        super.onBackPressed();
+        overridePendingTransition(R.anim.fade_in, R.anim.slide_out_horizontal);
     }
 }

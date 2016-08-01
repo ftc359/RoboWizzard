@@ -153,22 +153,9 @@ public class FileAdapter extends BaseAdapter{
                     activeId = -1;
                     return;
                 }
-                BaseActivity.savedFilename = mList.get(position);
-                BaseActivity.currentFilename = mList.get(position);
-                ReadXMLFileHandler readXMLFileHandler = new ReadXMLFileHandler(activity);
-                FileInputStream fileInputStream = null;
-                try {
-                    fileInputStream = new FileInputStream(Utility.CONFIG_FILES_DIR + BaseActivity.savedFilename + ".xml");
-                    Iterator iterator = ((ArrayList)readXMLFileHandler.parse(fileInputStream)).iterator();
-                    BaseActivity.savedLayout = new HashMap<SerialNumber, ControllerConfiguration>();
-                    while(iterator.hasNext()) {
-                        ControllerConfiguration controllerConfiguration = (ControllerConfiguration) iterator.next();
-                        BaseActivity.savedLayout.put(controllerConfiguration.getSerialNumber(), controllerConfiguration);
-                    }
-                    BaseActivity.currentLayout = new HashMap<SerialNumber, ControllerConfiguration>(BaseActivity.savedLayout);
-                } catch (RobotCoreException | FileNotFoundException e) {
-                    Toast.makeText(activity, "XML Parsing Failed", Toast.LENGTH_SHORT).show();
-                }
+                String filename = mList.get(position);
+                BaseActivity.saved = new LayoutFile(filename);
+                BaseActivity.current = new LayoutFile(BaseActivity.saved);
                 activity.startActivity(new Intent(activity, ControllerConfigurationActivity.class));
                 activity.overridePendingTransition(R.anim.slide_in_horizontal, R.anim.fade_out);
             }

@@ -72,11 +72,11 @@ public class ControllerConfigurationActivity extends BaseActivity {
         scanButton = (Button) findViewById(R.id.toolbar_scan);
         saveButton = (Button) findViewById(R.id.toolbar_save);
         listView = (ListView) findViewById(R.id.layoutList);
-        if(savedLayout != null) {
-            controllerAdapter = new ControllerAdapter(this, savedLayout);
+        if(!getIntent().getBooleanExtra(RUN_ID, false)) {
+            controllerAdapter = new ControllerAdapter(this, current);
             listView.setAdapter(controllerAdapter);
         }
-        if(savedFilename == null) {
+        if(getIntent().getBooleanExtra(RUN_ID, false)) {
             filename.setVisibility(View.GONE);
             addButton.setVisibility(View.GONE);
             scanButton.setVisibility(View.GONE);
@@ -84,8 +84,8 @@ public class ControllerConfigurationActivity extends BaseActivity {
             scan();
         }
         else {
-            if(!savedFilename.equals("")) {
-                filename.setText(savedFilename);
+            if(!saved.getFilename().equals("")) {
+                filename.setText(saved.getFilename());
             }
             else {
                 filename.requestFocus();
@@ -106,31 +106,32 @@ public class ControllerConfigurationActivity extends BaseActivity {
         clearFocus();
         PopupMenu popupMenu = new PopupMenu(this, v);
         popupMenu.getMenuInflater().inflate(R.menu.popup_new_controller, popupMenu.getMenu());
+        final SerialNumber serialNumber = new SerialNumber(DEFAULT_SERIAL_NUMBER);
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
                 switch(menuItem.getItemId()) {
                     case R.id.newMotorController:
-                        controllerAdapter.add((Map.Entry) new AbstractMap.SimpleEntry<SerialNumber, ControllerConfiguration>(DEFAULT_SERIAL_NUMBER, util.buildMotorController(DEFAULT_SERIAL_NUMBER)));
+                        controllerAdapter.add(util.buildMotorController(serialNumber));
                         listView.setSelection(controllerAdapter.getCount() - 1);
                         break;
                     case R.id.newServoController:
-                        controllerAdapter.add((Map.Entry) new AbstractMap.SimpleEntry<SerialNumber, ControllerConfiguration>(DEFAULT_SERIAL_NUMBER, util.buildServoController(DEFAULT_SERIAL_NUMBER)));
+                        controllerAdapter.add(util.buildServoController(serialNumber));
                         listView.setSelection(controllerAdapter.getCount() - 1);
                         break;
                     case R.id.newLegacyModule:
-                        controllerAdapter.add((Map.Entry) new AbstractMap.SimpleEntry<SerialNumber, ControllerConfiguration>(DEFAULT_SERIAL_NUMBER, util.buildLegacyModule(DEFAULT_SERIAL_NUMBER)));
+                        controllerAdapter.add(util.buildLegacyModule(serialNumber));
                         listView.setSelection(controllerAdapter.getCount() - 1);
                         break;
                     case R.id.newDeviceInterfaceModule:
-                        controllerAdapter.add((Map.Entry) new AbstractMap.SimpleEntry<SerialNumber, ControllerConfiguration>(DEFAULT_SERIAL_NUMBER, util.buildDeviceInterfaceModule(DEFAULT_SERIAL_NUMBER)));
+                        controllerAdapter.add(util.buildDeviceInterfaceModule(serialNumber));
                         listView.setSelection(controllerAdapter.getCount() - 1);
                         break;
                     default:
                         return false;
                 }
-                currentLayout = controllerAdapter.parseLayout();
-                makeToast(ControllerConfigurationActivity.this, controllerAdapter.getCount()+" "+currentLayout.size()+" "+(currentLayout.containsKey(DEFAULT_SERIAL_NUMBER)?"true":"false"));
+                current.setLayout(controllerAdapter.parseLayout());
+                makeToast(ControllerConfigurationActivity.this, controllerAdapter.getCount()+" "+current.size()+" "+(current.hasDuplicates()?"true":"false"));
                 return true;
             }
         });
@@ -138,7 +139,7 @@ public class ControllerConfigurationActivity extends BaseActivity {
     }
 
     public void run() {
-        if (savedFilename == null) {
+        if (getIntent().getBooleanExtra(RUN_ID, false)) {
             this.onBackPressed();
             return;
         }
@@ -186,9 +187,9 @@ public class ControllerConfigurationActivity extends BaseActivity {
     }
 
     public void save(View v) {
-        currentFilename = filename.getText().toString();
-        currentLayout = controllerAdapter.parseLayout();
-        if(currentLayout.containsKey(DEFAULT_SERIAL_NUMBER)) {
+        clearFocus();
+        current = new LayoutFile(filename.getText().toString(), controllerAdapter.parseLayout());
+        if(current.contains(new SerialNumber(DEFAULT_SERIAL_NUMBER))) {
             AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change the serial number(s) from the default.");
             builder.setNeutralButton("Ok", dummyListener);
             builder.show();
@@ -204,19 +205,19 @@ public class ControllerConfigurationActivity extends BaseActivity {
             overridePendingTransition(R.anim.fade_in, R.anim.slide_out_horizontal);
         }
         else {
-            currentFilename = filename.getText().toString();
-            currentLayout = controllerAdapter.parseLayout();
-            if(!savedLayout.equals(currentLayout) && !savedFilename.equals(currentFilename)) {
+            current = new LayoutFile(filename.getText().toString(), controllerAdapter.parseLayout());
+
+            if(current.contains(new SerialNumber(DEFAULT_SERIAL_NUMBER))) {
+                AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change the serial number(s) from the default.");
+                builder.setNeutralButton("Ok", dummyListener);
+                builder.show();
+                return;
+            }
+            if(!saved.equals(current)) {
                 AlertDialog.Builder builder = util.buildBuilder("Unsaved Changes", "You have unsaved changes. Pressing \'Save\' will save your changes while pressing \'Cancel\' will remove them.");
                 builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        if(currentLayout.containsKey(DEFAULT_SERIAL_NUMBER)) {
-                            AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change the serial number(s) from the default.");
-                            builder.setNeutralButton("Ok", dummyListener);
-                            builder.show();
-                            return;
-                        }
                         save();
                         ControllerConfigurationActivity.super.onBackPressed();
                         overridePendingTransition(R.anim.fade_in, R.anim.slide_out_horizontal);
@@ -232,6 +233,7 @@ public class ControllerConfigurationActivity extends BaseActivity {
                 builder.show();
             }
             else {
+                makeToast(this, saved.get(0).getName() + " " + current.get(0).getName());
                 super.onBackPressed();
                 overridePendingTransition(R.anim.fade_in, R.anim.slide_out_horizontal);
             }
