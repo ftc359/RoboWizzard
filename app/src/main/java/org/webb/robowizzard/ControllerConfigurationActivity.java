@@ -72,16 +72,12 @@ public class ControllerConfigurationActivity extends BaseActivity {
         scanButton = (Button) findViewById(R.id.toolbar_scan);
         saveButton = (Button) findViewById(R.id.toolbar_save);
         listView = (ListView) findViewById(R.id.layoutList);
-        if(!getIntent().getBooleanExtra(RUN_ID, false)) {
-            controllerAdapter = new ControllerAdapter(this, current);
-            listView.setAdapter(controllerAdapter);
-        }
         if(getIntent().getBooleanExtra(RUN_ID, false)) {
             filename.setVisibility(View.GONE);
             addButton.setVisibility(View.GONE);
             scanButton.setVisibility(View.GONE);
             saveButton.setVisibility(View.GONE);
-            scan();
+            if(!scan()) this.onBackPressed();
         }
         else {
             if(!saved.getFilename().equals("")) {
@@ -91,6 +87,8 @@ public class ControllerConfigurationActivity extends BaseActivity {
                 filename.requestFocus();
             }
         }
+        controllerAdapter = new ControllerAdapter(this, current, filename);
+        listView.setAdapter(controllerAdapter);
     }
 
     public void help(View v) {
@@ -194,6 +192,12 @@ public class ControllerConfigurationActivity extends BaseActivity {
             builder.show();
             return;
         }
+        if(current.getFilename().equals("")) {
+            AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change the layout name from the default.");
+            builder.setNeutralButton("Ok", dummyListener);
+            builder.show();
+            return;
+        }
         save();
     }
 
@@ -208,6 +212,12 @@ public class ControllerConfigurationActivity extends BaseActivity {
 
             if(current.contains(new SerialNumber(DEFAULT_SERIAL_NUMBER))) {
                 AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change the serial number(s) from the default.");
+                builder.setNeutralButton("Ok", dummyListener);
+                builder.show();
+                return;
+            }
+            if(current.getFilename().equals("") && !saved.getFilename().equals("")) {
+                AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change the layout name from the default.");
                 builder.setNeutralButton("Ok", dummyListener);
                 builder.show();
                 return;

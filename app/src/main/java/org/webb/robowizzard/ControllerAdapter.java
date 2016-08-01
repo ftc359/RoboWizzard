@@ -59,11 +59,13 @@ public class ControllerAdapter extends BaseAdapter{
     private long activeId;
     private int llWidth;
     private ActiveChangeManager mActiveChangeManager;
+    private BetterEditText editText;
 
-    public ControllerAdapter(Activity activity, LayoutFile layout) {
+    public ControllerAdapter(Activity activity, LayoutFile layout, BetterEditText editText) {
         mActiveChangeManager = new ActiveChangeManager();
         activeId = -1;
         this.activity = activity;
+        this.editText = editText;
         mList = new ArrayList<>();
         Iterator iterator = layout.iterator();
         id = 0;
@@ -152,6 +154,9 @@ public class ControllerAdapter extends BaseAdapter{
                     return;
                 }
                 BaseActivity.current.setLayout(parseLayout());
+                if(editText != null) {
+                    BaseActivity.current.setFilename(editText.getText().toString());
+                }
                 Intent intent = new Intent(activity, DeviceConfigurationActivity.class);
                 intent.putExtra("CONTROLLER", position);
                 activity.startActivity(intent);

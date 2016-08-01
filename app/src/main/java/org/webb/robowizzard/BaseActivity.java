@@ -161,7 +161,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         util.confirmSave();
     }
 
-    protected void scan() {
+    public boolean scan() {
         final LayoutFile temp = new LayoutFile();
         try {
             HardwareDeviceManager scanner = new HardwareDeviceManager(this, (EventLoopManager) null);
@@ -198,6 +198,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
         if(temp.size() == 0) {
             Toast.makeText(this, "No Devices Found", Toast.LENGTH_SHORT).show();
+            return false;
         }
         else {
             Toast.makeText(this, "Scan Complete", Toast.LENGTH_SHORT).show();
@@ -221,6 +222,7 @@ public abstract class BaseActivity extends AppCompatActivity {
                 current.setLayout(temp.getLayoutList());
             }
         }
+        return true;
     }
 
     public void clearFocus(){

@@ -74,6 +74,12 @@ public class DeviceConfigurationActivity extends BaseActivity {
             builder.show();
             return;
         }
+        if(current.getFilename().equals("")) {
+            AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change the layout name from the default.");
+            builder.setNeutralButton("Ok", dummyListener);
+            builder.show();
+            return;
+        }
         save();
     }
 

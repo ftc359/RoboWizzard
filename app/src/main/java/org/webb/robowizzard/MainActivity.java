@@ -67,7 +67,9 @@ public class MainActivity extends BaseActivity {
     @Override
     public void run(){
         super.run();
-        startActivityForResult(new Intent(this, ControllerConfigurationActivity.class), 0);
+        Intent intent = new Intent(this, ControllerConfigurationActivity.class);
+        intent.putExtra(RUN_ID, true);
+        startActivity(intent);
         overridePendingTransition(R.anim.slide_in_horizontal, R.anim.fade_out);
     }
 
