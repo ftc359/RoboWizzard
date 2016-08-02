@@ -35,59 +35,52 @@ package org.webb.robowizzard;
 
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
 public class ControllerAdapter extends BaseAdapter{
     private Activity activity;
-    private ArrayList<ControllerConfiguration> mList;
+    private LayoutFile layout;
     private HashMap<ControllerConfiguration, Integer> mIdMap;
     private int id;
     private long activeId;
     private int llWidth;
     private ActiveChangeManager mActiveChangeManager;
-    private BetterEditText editText;
 
-    public ControllerAdapter(Activity activity, LayoutFile layout, BetterEditText editText) {
+    public ControllerAdapter(Activity activity, LayoutFile layout) {
         mActiveChangeManager = new ActiveChangeManager();
         activeId = -1;
         this.activity = activity;
-        this.editText = editText;
-        mList = new ArrayList<>();
+        this.layout = layout;
         Iterator iterator = layout.iterator();
         id = 0;
         mIdMap = new HashMap<>();
         while(iterator.hasNext()) {
-            add((ControllerConfiguration) iterator.next());
+            mIdMap.put((ControllerConfiguration) iterator.next(), id++);
         }
     }
 
     public void add(ControllerConfiguration controller) {
-        mList.add(controller);
+        layout.add(controller);
         mIdMap.put(controller, id++);
         notifyDataSetChanged();
     }
 
     public void remove(ControllerConfiguration controller) {
-        mList.remove(controller);
+        layout.remove(controller);
         mIdMap.remove(controller);
-    }
-
-    public ArrayList<ControllerConfiguration> parseLayout() {
-        return mList;
     }
 
     @Override
@@ -97,12 +90,12 @@ public class ControllerAdapter extends BaseAdapter{
 
     @Override
     public int getCount() {
-        return mList.size();
+        return layout.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return mList.get(position);
+        return layout.get(position);
     }
 
     @Override
@@ -153,12 +146,13 @@ public class ControllerAdapter extends BaseAdapter{
                     activeId = -1;
                     return;
                 }
-                BaseActivity.current.setLayout(parseLayout());
-                if(editText != null) {
-                    BaseActivity.current.setFilename(editText.getText().toString());
+                View focusedView = activity.getCurrentFocus();
+                if(focusedView != null) {
+                    focusedView.clearFocus();
+                    ((InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(focusedView.getWindowToken(), 0);
                 }
                 Intent intent = new Intent(activity, DeviceConfigurationActivity.class);
-                intent.putExtra("CONTROLLER", position);
+                intent.putExtra("DEVICE", ControllerAdapter.this.layout.get(position));
                 activity.startActivity(intent);
                 activity.overridePendingTransition(R.anim.slide_in_horizontal, R.anim.fade_out);
             }
@@ -175,7 +169,7 @@ public class ControllerAdapter extends BaseAdapter{
                     @Override
                     public void run() {
                         ControllerAdapter.this.remove((ControllerConfiguration) getItem(position));
-                        ControllerAdapter.super.notifyDataSetChanged();
+                        ControllerAdapter.this.notifyDataSetChanged();
                     }
                 });
             }

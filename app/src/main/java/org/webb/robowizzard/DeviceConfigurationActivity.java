@@ -34,16 +34,20 @@
 package org.webb.robowizzard;
 
 import android.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.LinearLayout;
 
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
+import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
 import com.qualcomm.robotcore.util.SerialNumber;
 
 public class DeviceConfigurationActivity extends BaseActivity {
     private int index;
     private BetterEditText name, serialNumber;
+    private DeviceConfiguration device;
     private ControllerConfiguration controller;
 
     @Override
@@ -51,18 +55,28 @@ public class DeviceConfigurationActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_configuration);
         setSupportActionBar((android.support.v7.widget.Toolbar) findViewById(R.id.toolbar));
-        index = getIntent().getIntExtra("CONTROLLER", -1);
-        controller  = current.get(index);
+        device = (DeviceConfiguration) getIntent().getSerializableExtra("DEVICE");
         name = (BetterEditText) findViewById(R.id.controllerName);
-        name.setText(controller.getName());
-        serialNumber = (BetterEditText) findViewById(R.id.serialNumber);
-        serialNumber.setText(controller.getSerialNumber().toString());
+        name.setText(device.getName());
+        if(HardwareConstants.partOfGroup(HardwareConstants.CONTROLLER, device.getType())) {
+            controller = (ControllerConfiguration) device;
+            serialNumber = new BetterEditText(this);
+            serialNumber.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            serialNumber.setMaxLines(1);
+            serialNumber.setImeOptions(EditorInfo.IME_ACTION_DONE);
+            serialNumber.setText(controller.getSerialNumber().toString());
+            serialNumber.setHint(R.string.device_name);
+            LinearLayout parent = (LinearLayout) findViewById(R.id.activity_device_configuration);
+            parent.addView(serialNumber, 4);
+        }
+        else {
+            name.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        }
     }
 
     public void update() {
-        controller.getSerialNumber().setSerialNumber(serialNumber.getText().toString());
-        controller.setName(name.getText().toString());
-        current.set(index, controller);
+        device.setName(name.getText().toString());
+        if(controller != null) controller.getSerialNumber().setSerialNumber(serialNumber.getText().toString());
     }
 
     public void save(View v) {

@@ -59,20 +59,30 @@ public class BetterEditText extends EditText {
     }
 
     private void setOptions() {
-        this.setOnEditorActionListener(new OnEditorActionListener() {
+        this.setOnEditorActionListener(null);
+        this.setOnFocusChangeListener(null);
+    }
+
+    public void setOnEditorActionListener(final OnEditorActionListener onEditorActionListener) {
+        super.setOnEditorActionListener(new OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
                 if(actionId == EditorInfo.IME_ACTION_DONE) {
                     BetterEditText.this.closeKeyboard();
                     return true;
                 }
-                return false;
+                return onEditorActionListener != null && onEditorActionListener.onEditorAction(textView, actionId, keyEvent);
             }
         });
-        this.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+    }
+
+    @Override
+    public void setOnFocusChangeListener(final OnFocusChangeListener onFocusChangeListener) {
+        super.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
                 if(b) {
+                    if(onFocusChangeListener != null) onFocusChangeListener.onFocusChange(view, b);
                     ((BetterEditText) view).setSelection(((BetterEditText) view).getText().length());
                 }
             }

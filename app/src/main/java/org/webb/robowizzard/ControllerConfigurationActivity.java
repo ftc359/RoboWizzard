@@ -86,8 +86,16 @@ public class ControllerConfigurationActivity extends BaseActivity {
             else {
                 filename.requestFocus();
             }
+            filename.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View view, boolean b) {
+                    if(!b) { //Lost focus
+                        current.setFilename(((BetterEditText) view).getText().toString());
+                    }
+                }
+            });
         }
-        controllerAdapter = new ControllerAdapter(this, current, filename);
+        controllerAdapter = new ControllerAdapter(this, current);
         listView.setAdapter(controllerAdapter);
     }
 
@@ -128,7 +136,6 @@ public class ControllerConfigurationActivity extends BaseActivity {
                     default:
                         return false;
                 }
-                current.setLayout(controllerAdapter.parseLayout());
                 return true;
             }
         });
@@ -185,7 +192,7 @@ public class ControllerConfigurationActivity extends BaseActivity {
 
     public void save(View v) {
         clearFocus();
-        current = new LayoutFile(filename.getText().toString(), controllerAdapter.parseLayout());
+        current.setFilename(filename.getText().toString());
         if(current.contains(new SerialNumber(DEFAULT_SERIAL_NUMBER))) {
             AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change the serial number(s) from the default.");
             builder.setNeutralButton("Ok", dummyListener);
@@ -208,7 +215,7 @@ public class ControllerConfigurationActivity extends BaseActivity {
             overridePendingTransition(R.anim.fade_in, R.anim.slide_out_horizontal);
         }
         else {
-            current = new LayoutFile(filename.getText().toString(), controllerAdapter.parseLayout());
+            current.setFilename(filename.getText().toString());
 
             if(current.contains(new SerialNumber(DEFAULT_SERIAL_NUMBER))) {
                 AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change the serial number(s) from the default.");

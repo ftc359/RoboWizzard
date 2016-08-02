@@ -33,33 +33,63 @@
 
 package org.webb.robowizzard;
 
-import com.qualcomm.robotcore.hardware.configuration.XMLConfigurationConstants;
+import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
 
-public class HardwareConstants extends XMLConfigurationConstants {
-    public static final String[] CONTROLLER_CONSTANTS = {
-        MOTOR_CONTROLLER,
-        SERVO_CONTROLLER,
-        LEGACY_MODULE_CONTROLLER,
-        DEVICE_INTERFACE_MODULE
+public class HardwareConstants {
+    public static ConfigurationType CONTROLLER[] = {
+            ConfigurationType.MOTOR_CONTROLLER,
+            ConfigurationType.SERVO_CONTROLLER,
+            ConfigurationType.LEGACY_MODULE_CONTROLLER,
+            ConfigurationType.DEVICE_INTERFACE_MODULE
     };
 
-    public static final String[] DEVICE_CONSTANTS = {
-            ANALOG_INPUT,
-            OPTICAL_DISTANCE_SENSOR,
-            IR_SEEKER,
-            LIGHT_SENSOR,
-            DIGITAL_DEVICE,
-            TOUCH_SENSOR,
-            IR_SEEKER_V3,
-            PULSE_WIDTH_DEVICE,
-            I2C_DEVICE,
-            ANALOG_OUTPUT,
-            TOUCH_SENSOR_MULTIPLEXER,
-            MATRIX_CONTROLLER,
-            ULTRASONIC_SENSOR,
-            ADAFRUIT_COLOR_SENSOR,
-            COLOR_SENSOR,
-            LED,
-            GYRO
+    public static ConfigurationType LEGACY[] = {
+            ConfigurationType.GYRO,
+            ConfigurationType.TOUCH_SENSOR,
+            ConfigurationType.COMPASS,
+            ConfigurationType.IR_SEEKER,
+            ConfigurationType.LIGHT_SENSOR,
+            ConfigurationType.ACCELEROMETER,
+            ConfigurationType.ULTRASONIC_SENSOR,
+            ConfigurationType.MOTOR_CONTROLLER,
+            ConfigurationType.SERVO_CONTROLLER,
+            ConfigurationType.MATRIX_CONTROLLER,
+            ConfigurationType.TOUCH_SENSOR_MULTIPLEXER,
+            ConfigurationType.COLOR_SENSOR,
+            ConfigurationType.NOTHING
     };
+
+    public static ConfigurationType ANALOG_INPUT[] = {
+            ConfigurationType.NOTHING,
+            ConfigurationType.OPTICAL_DISTANCE_SENSOR,
+            ConfigurationType.ANALOG_INPUT
+    };
+
+    public static ConfigurationType ANALOG_OUTPUT[] = {
+            ConfigurationType.NOTHING,
+            ConfigurationType.ANALOG_OUTPUT
+    };
+
+    public static ConfigurationType DIGITAL_DEVICE[] = {
+            ConfigurationType.NOTHING,
+            ConfigurationType.TOUCH_SENSOR,
+            ConfigurationType.LED,
+            ConfigurationType.DIGITAL_DEVICE
+    };
+
+    public static ConfigurationType I2C_DEVICE[] = {
+            ConfigurationType.NOTHING,
+            ConfigurationType.IR_SEEKER_V3,
+            ConfigurationType.ADAFRUIT_COLOR_SENSOR,
+            ConfigurationType.COLOR_SENSOR,
+            ConfigurationType.GYRO,
+            ConfigurationType.I2C_DEVICE
+    };
+
+    public static boolean partOfGroup(ConfigurationType[] group, ConfigurationType value) {
+        for(ConfigurationType type : group) {
+            if(value == type) return true;
+        }
+        return false;
+    }
 }

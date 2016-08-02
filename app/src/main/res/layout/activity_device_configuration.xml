@@ -33,7 +33,7 @@
   -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activity_controller_configuration"
+    android:id="@+id/activity_device_configuration"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="org.webb.robowizzard.DeviceConfigurationActivity"
@@ -61,21 +61,11 @@
     </LinearLayout>
 
     <org.webb.robowizzard.BetterEditText
-    android:id="@+id/controllerName"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:hint="@string/controller_name"
-    android:maxLines="1"
-    android:inputType="text" />
-
-    <org.webb.robowizzard.BetterEditText
-        android:id="@+id/serialNumber"
+        android:id="@+id/controllerName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/serial_number"
+        android:hint="@string/controller_name"
         android:maxLines="1"
-        android:fontFamily="monospace"
-        android:textSize="14sp"
         android:inputType="text" />
 
     <ListView
