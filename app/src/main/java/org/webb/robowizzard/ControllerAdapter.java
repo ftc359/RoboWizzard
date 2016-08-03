@@ -43,6 +43,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
@@ -104,7 +105,8 @@ public class ControllerAdapter extends BaseAdapter{
     }
 
     private static class ViewHolder {
-        private ObservableHorizontalScrollView parent;
+        private RelativeLayout parent;
+        private ObservableHorizontalScrollView scrollView;
         private Button controller;
         private TextView serialNumber;
         private Button delete;
@@ -116,15 +118,19 @@ public class ControllerAdapter extends BaseAdapter{
         if(convertView == null) {
             viewHolder = new ViewHolder();
             convertView = activity.getLayoutInflater().inflate(R.layout.item_controller, parent, false);
+            viewHolder.parent = (RelativeLayout) convertView.findViewById(R.id.parent);
             viewHolder.controller = (Button) convertView.findViewById(R.id.itemButton);
-            viewHolder.parent = (ObservableHorizontalScrollView) convertView.findViewById(R.id.parent);
+            viewHolder.scrollView = (ObservableHorizontalScrollView) convertView.findViewById(R.id.scrollView);
             viewHolder.controller.setWidth(BaseActivity.screenSize.x);
             viewHolder.serialNumber = (TextView) convertView.findViewById(R.id.serialNumber);
-            viewHolder.delete = (Button) convertView.findViewById(R.id.deleteButton);
+            viewHolder.delete = (Button) convertView.findViewById(R.id.deleteButtonDummy);
+            Button deleteReal = (Button) convertView.findViewById(R.id.deleteButton);
+            deleteReal.measure(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            viewHolder.delete.setLayoutParams(new LinearLayout.LayoutParams(deleteReal.getMeasuredWidth(), LinearLayout.LayoutParams.MATCH_PARENT));
             mActiveChangeManager.register(getItemId(position), new ActiveChangeListener() {
                 @Override
                 public void onActiveChange() {
-                    viewHolder.parent.smoothScrollTo(0, 0);
+                    viewHolder.scrollView.smoothScrollTo(0, 0);
                 }
             });
             LinearLayout ll = (LinearLayout) convertView.findViewById(R.id.linearLayout);
@@ -152,8 +158,8 @@ public class ControllerAdapter extends BaseAdapter{
                     ((InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(focusedView.getWindowToken(), 0);
                 }
                 Intent intent = new Intent(activity, DeviceConfigurationActivity.class);
-                intent.putExtra("DEVICE", ControllerAdapter.this.layout.get(position));
-                activity.startActivity(intent);
+                intent.putExtra("CONTROLLER", ControllerAdapter.this.layout.get(position));
+                activity.startActivityForResult(intent, BaseActivity.DEVICE_CONFIG);
                 activity.overridePendingTransition(R.anim.slide_in_horizontal, R.anim.fade_out);
             }
         });
@@ -174,7 +180,7 @@ public class ControllerAdapter extends BaseAdapter{
                 });
             }
         });
-        viewHolder.parent.setOnScrollListener(new ObservableHorizontalScrollView.OnScrollListener() {
+        viewHolder.scrollView.setOnScrollListener(new ObservableHorizontalScrollView.OnScrollListener() {
             @Override
             public void onStartScroll(ObservableHorizontalScrollView scrollView) {
                 if(activeId != -1 && activeId != getItemId(position)) {
@@ -192,7 +198,7 @@ public class ControllerAdapter extends BaseAdapter{
             @Override
             public void onEndScroll(ObservableHorizontalScrollView scrollView) {
                 int scrollX = scrollView.getScrollX();
-                int optionsWidth = llWidth - BaseActivity.screenSize.x;
+                int optionsWidth = llWidth;
                 if((scrollX > optionsWidth / 8.0 && activeId != getItemId(position)) || (scrollX > optionsWidth * 7 / 8.0 && activeId == getItemId(position))) {
                     scrollView.smoothScrollTo(optionsWidth, 0);
                     activeId = getItemId(position);

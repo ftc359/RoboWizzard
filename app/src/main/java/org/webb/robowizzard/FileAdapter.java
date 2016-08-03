@@ -41,17 +41,10 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.qualcomm.robotcore.exception.RobotCoreException;
-import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
-import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
-import com.qualcomm.robotcore.hardware.configuration.Utility;
-import com.qualcomm.robotcore.util.SerialNumber;
-
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -111,7 +104,8 @@ public class FileAdapter extends BaseAdapter{
     }
 
     private static class ViewHolder {
-        private ObservableHorizontalScrollView parent;
+        private RelativeLayout parent;
+        private ObservableHorizontalScrollView scrollView;
         private Button file;
         private Button export;
         private Button delete;
@@ -123,15 +117,22 @@ public class FileAdapter extends BaseAdapter{
         if(convertView == null) {
             viewHolder = new ViewHolder();
             convertView = activity.getLayoutInflater().inflate(R.layout.item_file, parent, false);
-            viewHolder.parent = (ObservableHorizontalScrollView) convertView.findViewById(R.id.parent);
+            viewHolder.parent = (RelativeLayout) convertView.findViewById(R.id.parent);
+            viewHolder.scrollView = (ObservableHorizontalScrollView) convertView.findViewById(R.id.scrollView);
             viewHolder.file = (Button) convertView.findViewById(R.id.itemButton);
             viewHolder.file.setWidth(BaseActivity.screenSize.x);
-            viewHolder.export = (Button) convertView.findViewById(R.id.exportButton);
-            viewHolder.delete = (Button) convertView.findViewById(R.id.deleteButton);
+            viewHolder.export = (Button) convertView.findViewById(R.id.exportButtonDummy);
+            viewHolder.delete = (Button) convertView.findViewById(R.id.deleteButtonDummy);
+            Button exportReal = (Button) convertView.findViewById(R.id.exportButton);
+            exportReal.measure(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            viewHolder.export.setLayoutParams(new LinearLayout.LayoutParams(exportReal.getMeasuredWidth(), LinearLayout.LayoutParams.MATCH_PARENT));
+            Button deleteReal = (Button) convertView.findViewById(R.id.deleteButton);
+            deleteReal.measure(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            viewHolder.delete.setLayoutParams(new LinearLayout.LayoutParams(deleteReal.getMeasuredWidth(), LinearLayout.LayoutParams.MATCH_PARENT));
             mActiveChangeManager.register(getItemId(position), new ActiveChangeListener() {
                 @Override
                 public void onActiveChange() {
-                    viewHolder.parent.smoothScrollTo(0, 0);
+                    viewHolder.scrollView.smoothScrollTo(0, 0);
                 }
             });
             LinearLayout ll = (LinearLayout) convertView.findViewById(R.id.linearLayout);
@@ -190,7 +191,7 @@ public class FileAdapter extends BaseAdapter{
                 });
             }
         });
-        viewHolder.parent.setOnScrollListener(new ObservableHorizontalScrollView.OnScrollListener() {
+        viewHolder.scrollView.setOnScrollListener(new ObservableHorizontalScrollView.OnScrollListener() {
             @Override
             public void onStartScroll(ObservableHorizontalScrollView scrollView) {
                 if(activeId != -1 && activeId != getItemId(position)) {
@@ -208,7 +209,7 @@ public class FileAdapter extends BaseAdapter{
             @Override
             public void onEndScroll(ObservableHorizontalScrollView scrollView) {
                 int scrollX = scrollView.getScrollX();
-                int optionsWidth = llWidth - BaseActivity.screenSize.x;
+                int optionsWidth = llWidth;
                 if((scrollX > optionsWidth / 8.0 && activeId != getItemId(position)) || (scrollX > optionsWidth * 7 / 8.0 && activeId == getItemId(position))) {
                     scrollView.smoothScrollTo(optionsWidth, 0);
                     activeId = getItemId(position);

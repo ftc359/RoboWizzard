@@ -32,58 +32,81 @@
   ~ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   -->
 
-<org.webb.robowizzard.ObservableHorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/parent"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:scrollbars="none">
+    android:layout_height="wrap_content">
+
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:focusable="false"
-            android:focusableInTouchMode="false">
-            <Button
-                android:text="@string/item_name"
-                android:textColor="@color/colorAccent"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/itemButton"
-                android:background="@drawable/button_selector"
-                style="@style/ButtonTheme"
-                android:gravity="left|center_vertical"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingBottom="15dp"
-                tools:ignore="RtlHardcoded,RtlSymmetry"
-                android:focusable="false"
-                android:focusableInTouchMode="false" />
-
-            <TextView
-                android:text="@string/serial_number"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/serialNumber"
-                android:layout_alignParentStart="true"
-                android:layout_alignBottom="@id/itemButton"
-                android:textSize="12sp"
-                android:layout_marginBottom="5dp"
-                android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                android:fontFamily="monospace"
-                tools:ignore="RtlHardcoded"
-                android:focusable="false"
-                android:focusableInTouchMode="false" />
-        </RelativeLayout>
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true">
         <Button
+            android:id="@+id/deleteButton"
             android:text="@string/delete"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/deleteButton"
             android:background="#FF0000"
             style="@style/ButtonTheme" />
     </LinearLayout>
-</org.webb.robowizzard.ObservableHorizontalScrollView>
+
+    <org.webb.robowizzard.ObservableHorizontalScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true">
+        <LinearLayout
+            android:id="@+id/buttonBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="false"
+                android:focusableInTouchMode="false">
+                <Button
+                    android:text="@string/item_name"
+                    android:textColor="@color/colorAccent"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/itemButton"
+                    android:background="@drawable/button_selector"
+                    style="@style/ButtonTheme"
+                    android:gravity="left|center_vertical"
+                    android:paddingLeft="@dimen/activity_horizontal_margin"
+                    android:paddingBottom="15dp"
+                    tools:ignore="RtlHardcoded,RtlSymmetry"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false" />
+
+                <TextView
+                    android:text="@string/serial_number"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/serialNumber"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignBottom="@id/itemButton"
+                    android:textSize="12sp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                    android:fontFamily="monospace"
+                    tools:ignore="RtlHardcoded"
+                    android:focusable="false"
+                    android:focusableInTouchMode="false" />
+            </RelativeLayout>
+            <Button
+                android:id="@+id/deleteButtonDummy"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                style="@style/ButtonTheme"/>
+        </LinearLayout>
+    </org.webb.robowizzard.ObservableHorizontalScrollView>
+
+</RelativeLayout>
