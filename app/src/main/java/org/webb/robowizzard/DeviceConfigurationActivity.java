@@ -39,43 +39,69 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 
+import com.qualcomm.robotcore.hardware.DeviceManager;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
 import com.qualcomm.robotcore.util.SerialNumber;
 
+import java.io.Serializable;
+import java.util.List;
+
 public class DeviceConfigurationActivity extends BaseActivity {
-    private int index;
     private BetterEditText name, serialNumber;
-    private DeviceConfiguration device;
     private ControllerConfiguration controller;
+    private List<DeviceConfiguration> deviceList;
+    private boolean isDIM;
+    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_configuration);
         setSupportActionBar((android.support.v7.widget.Toolbar) findViewById(R.id.toolbar));
-        device = (DeviceConfiguration) getIntent().getSerializableExtra("DEVICE");
-        name = (BetterEditText) findViewById(R.id.controllerName);
-        name.setText(device.getName());
-        if(HardwareConstants.partOfGroup(HardwareConstants.CONTROLLER, device.getType())) {
-            controller = (ControllerConfiguration) device;
+        isDIM = false;
+        controller = (ControllerConfiguration) getIntent().getSerializableExtra("CONTROLLER");
+        if(controller != null) {
+            name = (BetterEditText) new BetterEditText(this);
+            name.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            name.setSingleLine();
+            name.setMaxLines(1);
+            name.setText(controller.getName());
+            name.setHint(R.string.controller_name);
             serialNumber = new BetterEditText(this);
             serialNumber.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            serialNumber.setSingleLine();
             serialNumber.setMaxLines(1);
             serialNumber.setImeOptions(EditorInfo.IME_ACTION_DONE);
             serialNumber.setText(controller.getSerialNumber().toString());
             serialNumber.setHint(R.string.device_name);
             LinearLayout parent = (LinearLayout) findViewById(R.id.activity_device_configuration);
-            parent.addView(serialNumber, 4);
+            parent.addView(serialNumber, 3);
+            parent.addView(name, 3);
+            if(controller.getType() == DeviceConfiguration.ConfigurationType.DEVICE_INTERFACE_MODULE) {
+                isDIM = true;
+                deviceList = null;
+                //TODO: initialize list of devices to just display buttons to take us to diff types
+            }
+            else {
+                deviceList = controller.getDevices();
+            }
         }
         else {
-            name.setImeOptions(EditorInfo.IME_ACTION_DONE);
+            this.deviceList = null;
+            Serializable deviceList = getIntent().getSerializableExtra("DEVICE_LIST");
+            if(deviceList instanceof List<?>) {
+                if(((List) deviceList).get(0) instanceof DeviceConfiguration) {
+                    this.deviceList = (List<DeviceConfiguration>) deviceList; //Gives us an unjustified warning, as we have already checked for safe conversion
+                }
+            }
         }
     }
 
     public void update() {
-        device.setName(name.getText().toString());
+        controller.setName(name.getText().toString());
         if(controller != null) controller.getSerialNumber().setSerialNumber(serialNumber.getText().toString());
     }
 

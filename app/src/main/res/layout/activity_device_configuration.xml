@@ -60,14 +60,6 @@
         <include layout="@layout/button_help" />
     </LinearLayout>
 
-    <org.webb.robowizzard.BetterEditText
-        android:id="@+id/controllerName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/controller_name"
-        android:maxLines="1"
-        android:inputType="text" />
-
     <ListView
         android:layout_width="match_parent"
         android:layout_height="0dp"

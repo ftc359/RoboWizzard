@@ -81,6 +81,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     final static String DEFAULT_SERIAL_NUMBER = "SERIAL_NUMBER";
     final static String RUN_ID = "NULL_LAYOUT";
+    final static int DEVICE_CONFIG = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){

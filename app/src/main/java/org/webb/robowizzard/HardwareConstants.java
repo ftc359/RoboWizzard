@@ -38,6 +38,7 @@ import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.Configu
 public class HardwareConstants {
     public static ConfigurationType CONTROLLER[] = {
             ConfigurationType.MOTOR_CONTROLLER,
+            ConfigurationType.MATRIX_CONTROLLER,
             ConfigurationType.SERVO_CONTROLLER,
             ConfigurationType.LEGACY_MODULE_CONTROLLER,
             ConfigurationType.DEVICE_INTERFACE_MODULE

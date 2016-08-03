@@ -43,7 +43,7 @@
         app:showAsAction="never" />
     <item
         android:id="@+id/newLegacyModule"
-        android:title="@string/toolbar_add_legacy_module"
+        android:title="@string/toolbar_add_legacy_module_controller"
         app:showAsAction="never" />
     <item
         android:id="@+id/newDeviceInterfaceModule"

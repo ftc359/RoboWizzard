@@ -48,20 +48,20 @@ import java.util.List;
 
 public class DeviceAdapter extends BaseAdapter {
     Activity activity;
-    ArrayList<DeviceConfiguration> mList;
+    List<DeviceConfiguration> deviceList;
     public DeviceAdapter(Activity activity, List<DeviceConfiguration> deviceList) {
         this.activity = activity;
-        mList = new ArrayList<>(deviceList);
+        this.deviceList = deviceList;
     }
 
     @Override
     public int getCount() {
-        return mList.size();
+        return deviceList.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return mList.get(position);
+        return deviceList.get(position);
     }
 
     @Override
@@ -73,15 +73,17 @@ public class DeviceAdapter extends BaseAdapter {
         TextView port;
         CheckBox enabled;
         BetterEditText name;
-        Spinner type;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder viewHolder = null;
         if(convertView == null) {
-            convertView = activity.getLayoutInflater().inflate(R.layout.item_device, parent);
-            ViewHolder viewHolder = new ViewHolder();
-            //viewHolder.port = convertView.findViewById();
+            convertView = activity.getLayoutInflater().inflate(R.layout.item_device_motor_and_servo, parent);
+            viewHolder = new ViewHolder();
+        }
+        else {
+            viewHolder = (ViewHolder) convertView.getTag();
         }
 
         return convertView;
