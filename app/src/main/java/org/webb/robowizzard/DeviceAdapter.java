@@ -79,6 +79,14 @@ public class DeviceAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder = null;
         if(convertView == null) {
+            switch(((DeviceConfiguration) getItem(position)).getType()) {
+                case MOTOR:
+                    break;
+                case SERVO:
+                    break;
+                default:
+                    break;
+            }
             convertView = activity.getLayoutInflater().inflate(R.layout.item_device_motor_and_servo, parent);
             viewHolder = new ViewHolder();
         }

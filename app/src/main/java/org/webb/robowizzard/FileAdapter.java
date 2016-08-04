@@ -57,7 +57,6 @@ public class FileAdapter extends BaseAdapter{
     private int id;
     private ActiveChangeManager mActiveChangeManager;
     private long activeId;
-    private int lastX;
     private int llWidth;
 
     public FileAdapter(Activity activity, List<String> fileNames) {

@@ -34,16 +34,19 @@
 package org.webb.robowizzard;
 
 import android.app.AlertDialog;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.qualcomm.robotcore.hardware.DeviceManager;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
+import com.qualcomm.robotcore.hardware.configuration.DeviceInterfaceModuleConfiguration;
 import com.qualcomm.robotcore.util.SerialNumber;
 
 import java.io.Serializable;
@@ -61,48 +64,52 @@ public class DeviceConfigurationActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_configuration);
         setSupportActionBar((android.support.v7.widget.Toolbar) findViewById(R.id.toolbar));
+        listView = (ListView) findViewById(R.id.deviceList);
         isDIM = false;
         controller = (ControllerConfiguration) getIntent().getSerializableExtra("CONTROLLER");
         if(controller != null) {
+            LinearLayout parent = (LinearLayout) findViewById(R.id.activity_device_configuration);
+            if(!launchedBy(DeviceConfigurationActivity.class)) { //NOT a subcontroller of a legacy module
+                serialNumber = new BetterEditText(this);
+                serialNumber.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                serialNumber.setSingleLine();
+                serialNumber.setMaxLines(1);
+                serialNumber.setImeOptions(EditorInfo.IME_ACTION_DONE);
+                serialNumber.setText(controller.getSerialNumber().toString());
+                serialNumber.setHint(R.string.device_name);
+                serialNumber.setTypeface(Typeface.MONOSPACE);
+                parent.addView(serialNumber, 3);
+            }
             name = (BetterEditText) new BetterEditText(this);
             name.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             name.setSingleLine();
             name.setMaxLines(1);
             name.setText(controller.getName());
             name.setHint(R.string.controller_name);
-            serialNumber = new BetterEditText(this);
-            serialNumber.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            serialNumber.setSingleLine();
-            serialNumber.setMaxLines(1);
-            serialNumber.setImeOptions(EditorInfo.IME_ACTION_DONE);
-            serialNumber.setText(controller.getSerialNumber().toString());
-            serialNumber.setHint(R.string.device_name);
-            LinearLayout parent = (LinearLayout) findViewById(R.id.activity_device_configuration);
-            parent.addView(serialNumber, 3);
             parent.addView(name, 3);
             if(controller.getType() == DeviceConfiguration.ConfigurationType.DEVICE_INTERFACE_MODULE) {
                 isDIM = true;
                 deviceList = null;
-                //TODO: initialize list of devices to just display buttons to take us to diff types
+                parent.removeView(findViewById(R.id.categories));
+                listView.setAdapter(new DIMOptionAdapter(this, (DeviceInterfaceModuleConfiguration) controller));
             }
             else {
                 deviceList = controller.getDevices();
             }
         }
         else {
-            this.deviceList = null;
-            Serializable deviceList = getIntent().getSerializableExtra("DEVICE_LIST");
-            if(deviceList instanceof List<?>) {
-                if(((List) deviceList).get(0) instanceof DeviceConfiguration) {
-                    this.deviceList = (List<DeviceConfiguration>) deviceList; //Gives us an unjustified warning, as we have already checked for safe conversion
-                }
-            }
+            deviceList = (List<DeviceConfiguration>) getIntent().getSerializableExtra("DEVICE_LIST");
+        }
+        if(deviceList != null) {
+            // listView.setAdapter(new DeviceAdapter(this, deviceList));
         }
     }
 
     public void update() {
-        controller.setName(name.getText().toString());
-        if(controller != null) controller.getSerialNumber().setSerialNumber(serialNumber.getText().toString());
+        if(controller != null) {
+            controller.setName(name.getText().toString());
+            if(!launchedBy(DeviceConfigurationActivity.class)) controller.getSerialNumber().setSerialNumber(serialNumber.getText().toString());
+        }
     }
 
     public void save(View v) {
