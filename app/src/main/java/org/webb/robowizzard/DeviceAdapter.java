@@ -36,14 +36,15 @@ package org.webb.robowizzard;
 import android.app.Activity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.Spinner;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DeviceAdapter extends BaseAdapter {
@@ -73,25 +74,61 @@ public class DeviceAdapter extends BaseAdapter {
         TextView port;
         CheckBox enabled;
         BetterEditText name;
+        Button test;
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
+        final DeviceConfiguration device = (DeviceConfiguration) getItem(position);
         ViewHolder viewHolder = null;
+        DeviceConfiguration.ConfigurationType condition = ((DeviceConfiguration) getItem(position)).getType();
         if(convertView == null) {
-            switch(((DeviceConfiguration) getItem(position)).getType()) {
+            viewHolder = new ViewHolder();
+            switch(condition) {
                 case MOTOR:
+                    convertView = activity.getLayoutInflater().inflate(R.layout.item_device_motor_and_servo, parent, false);
+                    viewHolder.port = (TextView) convertView.findViewById(R.id.portNumber);
+                    viewHolder.enabled = (CheckBox) convertView.findViewById(R.id.portEnabled);
+                    viewHolder.enabled.setChecked(device.isEnabled());
+                    viewHolder.enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                            device.setEnabled(compoundButton.isEnabled() && b);
+                        }
+                    });
+                    viewHolder.name = (BetterEditText) convertView.findViewById(R.id.portName);
+                    viewHolder.name.setText(device.getName());
+                    viewHolder.name.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                        @Override
+                        public void onFocusChange(View view, boolean b) {
+                            if(!b) {
+                                device.setName(((BetterEditText) view).getText().toString());
+                            }
+                        }
+                    });
                     break;
-                case SERVO:
-                    break;
+//                case SERVO:
+//                    break;
                 default:
+                    convertView = activity.getLayoutInflater().inflate(R.layout.item_dim_options, parent, false);
+                    viewHolder.test = (Button) convertView.findViewById(R.id.optionButton);
                     break;
             }
-            convertView = activity.getLayoutInflater().inflate(R.layout.item_device_motor_and_servo, parent);
-            viewHolder = new ViewHolder();
+            if(viewHolder.name != null && getCount() - 1 == position) {
+                viewHolder.name.setImeOptions(EditorInfo.IME_ACTION_DONE);
+            }
+            convertView.setTag(viewHolder);
         }
         else {
             viewHolder = (ViewHolder) convertView.getTag();
+        }
+        switch(condition) {
+            case MOTOR:
+                viewHolder.port.setText(""+device.getPort());
+                break;
+            default:
+                viewHolder.test.setText(((DeviceConfiguration) getItem(position)).getName());
+                break;
         }
 
         return convertView;

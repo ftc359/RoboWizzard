@@ -48,20 +48,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DIMOptionAdapter extends BaseAdapter {
-    private final static String PWM_DEVICES = "PWM Devices";
-    private final static String I2C_DEVICES = "I2C Devices";
-    private final static String ANALOG_INPUT_DEVICES = "Analog Input Devices";
-    private final static String DIGITAL_DEVICES = "Digital Devices";
-    private final static String ANALOG_OUTPUT_DEVICES = "Analog Output Devices";
+    public final static String PWM_DEVICES = "PWM Devices";
+    public final static String I2C_DEVICES = "I2C Devices";
+    public final static String ANALOG_INPUT_DEVICES = "Analog Input Devices";
+    public final static String DIGITAL_DEVICES = "Digital Devices";
+    public final static String ANALOG_OUTPUT_DEVICES = "Analog Output Devices";
 
     private Activity activity;
     private DeviceInterfaceModuleConfiguration controller;
     private List<String> optionList;
+    private int controllerIndex;
 
-    public DIMOptionAdapter(Activity activity, DeviceInterfaceModuleConfiguration controller) {
+    public DIMOptionAdapter(Activity activity, DeviceInterfaceModuleConfiguration controller, int controllerIndex) {
         this.activity = activity;
         this.controller = controller;
         optionList = new ArrayList<String>();
+        this.controllerIndex = controllerIndex;
 
         optionList.add(PWM_DEVICES);
         optionList.add(I2C_DEVICES);
@@ -96,26 +98,7 @@ public class DIMOptionAdapter extends BaseAdapter {
                 @Override
                 public void onClick(View view) {
                     String option = ((Button) view).getText().toString();
-
-                    switch(option) {
-                        case PWM_DEVICES:
-                            startOption(controller.getPwmDevices());
-                            break;
-                        case I2C_DEVICES:
-                            startOption(controller.getI2cDevices());
-                            break;
-                        case ANALOG_INPUT_DEVICES:
-                            startOption(controller.getAnalogInputDevices());
-                            break;
-                        case DIGITAL_DEVICES:
-                            startOption(controller.getDigitalDevices());
-                            break;
-                        case ANALOG_OUTPUT_DEVICES:
-                            startOption(controller.getAnalogOutputDevices());
-                            break;
-                        default:
-                            break;
-                    }
+                    startOption(option);
                 }
             });
             convertView.setTag(optionButton);
@@ -129,9 +112,10 @@ public class DIMOptionAdapter extends BaseAdapter {
         return convertView;
     }
 
-    private void startOption(List<DeviceConfiguration> deviceList) {
+    private void startOption(String deviceType) {
         Intent intent = new Intent(activity, DeviceConfigurationActivity.class);
-        intent.putExtra("DEVICE_LIST", (Serializable) deviceList);
+        intent.putExtra("CONTROLLER", controllerIndex);
+        intent.putExtra("DEVICE_TYPE", deviceType);
         activity.startActivity(intent);
         activity.overridePendingTransition(R.anim.slide_in_horizontal, R.anim.fade_out);
     }

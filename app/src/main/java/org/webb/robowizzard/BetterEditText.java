@@ -81,8 +81,8 @@ public class BetterEditText extends EditText {
         super.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
+                if(onFocusChangeListener != null) onFocusChangeListener.onFocusChange(view, b);
                 if(b) {
-                    if(onFocusChangeListener != null) onFocusChangeListener.onFocusChange(view, b);
                     ((BetterEditText) view).setSelection(((BetterEditText) view).getText().length());
                 }
             }

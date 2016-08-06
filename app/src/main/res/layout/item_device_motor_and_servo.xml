@@ -57,5 +57,6 @@
         android:text="@string/device_name"
         android:hint="@string/device_name"
         android:maxLines="1"
-        android:layout_weight="1"/>
+        android:singleLine="true"
+        android:layout_weight="1" />
 </LinearLayout>

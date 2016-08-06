@@ -158,7 +158,7 @@ public class ControllerAdapter extends BaseAdapter{
                     ((InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(focusedView.getWindowToken(), 0);
                 }
                 Intent intent = new Intent(activity, DeviceConfigurationActivity.class);
-                intent.putExtra("CONTROLLER", ControllerAdapter.this.layout.get(position));
+                intent.putExtra("CONTROLLER", position);
                 activity.startActivityForResult(intent, BaseActivity.DEVICE_CONFIG);
                 activity.overridePendingTransition(R.anim.slide_in_horizontal, R.anim.fade_out);
             }

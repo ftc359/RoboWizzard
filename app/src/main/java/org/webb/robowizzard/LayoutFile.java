@@ -38,33 +38,28 @@ import android.widget.Toast;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
-import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.hardware.configuration.Utility;
 import com.qualcomm.robotcore.util.SerialNumber;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 
-public class LayoutFile implements  Iterable<ControllerConfiguration>{
+public class LayoutFile implements Serializable, Iterable<ControllerConfiguration> {
     private String filename;
     private ArrayList<ControllerConfiguration> layoutList;
     private HashMap<SerialNumber, ControllerConfiguration> layoutMap;
     private ArrayList<ControllerConfiguration> duplicates;
-
-    public LayoutFile(LayoutFile layoutFile) {
-        this.filename = layoutFile.getFilename();
-        this.layoutList = new ArrayList<>();
-        this.layoutMap = new HashMap<>();
-        this.duplicates = new ArrayList<>();
-        for(ControllerConfiguration controller : layoutFile.layoutList) {
-            this.add(new Controller(controller));
-        }
-    }
 
     public LayoutFile() {
         this.filename = "";
@@ -252,62 +247,35 @@ public class LayoutFile implements  Iterable<ControllerConfiguration>{
 
         LayoutFile layoutFile = (LayoutFile) obj;
 
-        if(this.filename == null || layoutFile.filename == null) return false;
-        else if(!this.filename.equals(layoutFile.filename)) return false;
-
-        if(this.layoutList == null || layoutFile.layoutList == null) return false;
-        else if(!this.layoutList.equals(layoutFile.layoutList)) return false;
-
-        if(this.layoutMap == null || layoutFile.layoutMap == null) return false;
-        else if(!this.layoutMap.equals(layoutFile.layoutMap)) return false;
-
-        if(this.duplicates == null || layoutFile.duplicates == null) return false;
-        else if(!this.duplicates.equals(layoutFile.duplicates)) return false;
-
-        return true;
+        try { // "Hack" to use serialization to compare the objects
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+            objectOutputStream.writeObject(this);
+            byte[] mData = byteArrayOutputStream.toByteArray();
+            byteArrayOutputStream = new ByteArrayOutputStream();
+            objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+            objectOutputStream.writeObject(obj);
+            byte[] otherData = byteArrayOutputStream.toByteArray();
+            return Arrays.equals(mData, otherData);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    private class Controller extends ControllerConfiguration {
-        public Controller(ControllerConfiguration controller) {
-            super(controller.getName(), new SerialNumber(controller.getSerialNumber().toString()), controller.getType());
-
-            List<DeviceConfiguration> deviceList = new ArrayList<>();
-            for(DeviceConfiguration device : controller.getDevices()) {
-                deviceList.add(new DeviceConfiguration(device.getPort(), device.getType(), device.getName(), device.isEnabled()));
-            }
-            this.addDevices(deviceList);
+    public LayoutFile createCopy() { // "Hack" to use serialization to create a deep copy of this
+        try {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+            objectOutputStream.writeObject(this);
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+            ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
+            return (LayoutFile) objectInputStream.readObject();
         }
-
-        @Override
-        public boolean equals(Object obj) {
-            if(this == obj) return true;
-            if(obj == null || !(obj instanceof ControllerConfiguration)) return false;
-
-            ControllerConfiguration controller = (ControllerConfiguration) obj;
-
-            if(!this.getName().equals(controller.getName())) return false;
-
-            if(!this.getSerialNumber().equals(controller.getSerialNumber())) return false;
-
-            if(this.getType() != controller.getType()) return false;
-
-            if(this.getDevices().size() != controller.getDevices().size()) return false;
-
-            //Since DeviceConfiguration has no overridden equals method we have to compare it ourselves
-            for(int index = 0; index < this.getDevices().size(); index++) {
-                DeviceConfiguration myDevice = this.getDevices().get(index);
-                DeviceConfiguration otherDevice = controller.getDevices().get(index);
-
-                if(!myDevice.getName().equals(otherDevice.getName())) return false;
-
-                if(myDevice.getPort() != otherDevice.getPort()) return  false;
-
-                if(myDevice.getType() != otherDevice.getType()) return false;
-
-                if(myDevice.isEnabled() != otherDevice.isEnabled()) return false;
-            }
-
-            return true;
+        catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }

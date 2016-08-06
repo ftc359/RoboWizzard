@@ -155,7 +155,8 @@ public class FileAdapter extends BaseAdapter{
                 }
                 String filename = mList.get(position);
                 BaseActivity.current = new LayoutFile(filename);
-                BaseActivity.saved = new LayoutFile(BaseActivity.current);
+//                BaseActivity.saved = new LayoutFile(BaseActivity.current);
+                BaseActivity.saved = BaseActivity.current.createCopy();
                 activity.startActivity(new Intent(activity, ControllerConfigurationActivity.class));
                 activity.overridePendingTransition(R.anim.slide_in_horizontal, R.anim.fade_out);
             }

@@ -75,7 +75,8 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/category_port_name"/>
+                android:text="@string/category_port_name"
+                android:textSize="18sp"/>
             <View
                 android:layout_width="@dimen/spacer_size"
                 android:layout_height="match_parent"
@@ -88,7 +89,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/category_attached_device"/>
+                android:text="@string/category_attached_device"
+                android:textSize="18sp"/>
         </LinearLayout>
         <include layout="@layout/spacer_horizontal" />
     </LinearLayout>
@@ -97,6 +99,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:id="@+id/deviceList" />
+        android:id="@+id/deviceList"
+        android:descendantFocusability="afterDescendants"/>
 
 </LinearLayout>

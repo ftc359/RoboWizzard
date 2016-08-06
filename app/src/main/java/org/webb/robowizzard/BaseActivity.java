@@ -157,8 +157,7 @@ public abstract class BaseActivity extends AppCompatActivity {
             builder.setNeutralButton("Ok", dummyListener);
             builder.show();
         }
-        saved.setFilename(current.getFilename());
-        saved.setLayout(current.getLayoutList());
+        saved = current.createCopy();
         util.confirmSave();
     }
 

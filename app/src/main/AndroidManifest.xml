@@ -58,7 +58,7 @@
         </activity>
         <activity android:name=".ControllerConfigurationActivity" />
         <activity android:name=".AboutActivity" />
-        <activity android:name=".DeviceConfigurationActivity"></activity>
+        <activity android:name=".DeviceConfigurationActivity" android:windowSoftInputMode="adjustPan"/>
     </application>
 
 </manifest>
