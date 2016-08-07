@@ -81,7 +81,7 @@ public class DeviceConfigurationActivity extends BaseActivity {
                 serialNumber.setMaxLines(1);
                 serialNumber.setImeOptions(EditorInfo.IME_ACTION_DONE);
                 serialNumber.setText(controller.getSerialNumber().toString());
-                serialNumber.setHint(R.string.device_name);
+                serialNumber.setHint(R.string.serial_number);
                 serialNumber.setTypeface(Typeface.MONOSPACE);
                 serialNumber.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                     @Override
