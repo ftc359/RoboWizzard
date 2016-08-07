@@ -108,48 +108,45 @@ public class DeviceConfigurationActivity extends BaseActivity {
                 }
             });
             parent.addView(name, 3);
-            if(controller.getType() == DeviceConfiguration.ConfigurationType.DEVICE_INTERFACE_MODULE) {
-                isDIM = true;
-                String deviceType = getIntent().getStringExtra("DEVICE_TYPE");
-                DeviceInterfaceModuleConfiguration controllerDIM = (DeviceInterfaceModuleConfiguration) controller;
-                if(deviceType != null) {
-                    switch (deviceType) {
-                        case DIMOptionAdapter.PWM_DEVICES:
-                            deviceList = controllerDIM.getPwmDevices();
-                            break;
-                        case DIMOptionAdapter.I2C_DEVICES:
-                            deviceList = controllerDIM.getI2cDevices();
-                            break;
-                        case DIMOptionAdapter.ANALOG_INPUT_DEVICES:
-                            deviceList = controllerDIM.getAnalogInputDevices();
-                            break;
-                        case DIMOptionAdapter.DIGITAL_DEVICES:
-                            deviceList = controllerDIM.getDigitalDevices();
-                            break;
-                        case DIMOptionAdapter.ANALOG_OUTPUT_DEVICES:
-                            deviceList = controllerDIM.getAnalogOutputDevices();
-                            break;
-                        default:
-                            deviceList = null;
-                            break;
+            switch(controller.getType()) {
+                case MOTOR_CONTROLLER:
+                case SERVO_CONTROLLER:
+                case MATRIX_CONTROLLER:
+                    listView.setAdapter(new DeviceAdapter(this, controller.getDevices(), Constants.MOTOR));
+                    break;
+                case LEGACY_MODULE_CONTROLLER:
+                    listView.setAdapter(new DeviceAdapter(this, controller.getDevices(), Constants.LEGACY));
+                    break;
+                case DEVICE_INTERFACE_MODULE:
+                    isDIM = true;
+                    String deviceType = getIntent().getStringExtra("DEVICE_TYPE");
+                    DeviceInterfaceModuleConfiguration controllerDIM = (DeviceInterfaceModuleConfiguration) controller;
+                    if(deviceType != null) {
+                        switch (deviceType) {
+                            case DIMOptionAdapter.PWM_DEVICES:
+                                listView.setAdapter(new DeviceAdapter(this, controllerDIM.getPwmDevices(), Constants.MOTOR));
+                                break;
+                            case DIMOptionAdapter.I2C_DEVICES:
+                                listView.setAdapter(new DeviceAdapter(this, controllerDIM.getI2cDevices(), Constants.I2C_DEVICE));
+                                break;
+                            case DIMOptionAdapter.ANALOG_INPUT_DEVICES:
+                                listView.setAdapter(new DeviceAdapter(this, controllerDIM.getAnalogInputDevices(), Constants.ANALOG_INPUT));
+                                break;
+                            case DIMOptionAdapter.DIGITAL_DEVICES:
+                                listView.setAdapter(new DeviceAdapter(this, controllerDIM.getDigitalDevices(), Constants.DIGITAL_DEVICE));
+                                break;
+                            case DIMOptionAdapter.ANALOG_OUTPUT_DEVICES:
+                                listView.setAdapter(new DeviceAdapter(this, controllerDIM.getAnalogOutputDevices(), Constants.ANALOG_OUTPUT));
+                                break;
+                            default:
+                                break;
+                        }
                     }
-                }
-                else {
-                    deviceList = null;
-                    parent.removeView(findViewById(R.id.categories));
-                    listView.setAdapter(new DIMOptionAdapter(this, (DeviceInterfaceModuleConfiguration) controller, controllerIndex));
-                }
+                    else {
+                        parent.removeView(findViewById(R.id.categories));
+                        listView.setAdapter(new DIMOptionAdapter(this, (DeviceInterfaceModuleConfiguration) controller, controllerIndex));
+                    }
             }
-            else {
-                deviceList = controller.getDevices();
-            }
-        }
-        else {
-            deviceList = null;
-        }
-
-        if(deviceList != null) {
-            listView.setAdapter(new DeviceAdapter(this, deviceList));
         }
     }
 

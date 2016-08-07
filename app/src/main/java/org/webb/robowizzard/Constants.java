@@ -35,7 +35,34 @@ package org.webb.robowizzard;
 
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
 
-public class HardwareConstants {
+public class Constants {
+    public static ConfigurationType SENSOR[] = {
+            ConfigurationType.GYRO,
+            ConfigurationType.ACCELEROMETER,
+            ConfigurationType.TOUCH_SENSOR,
+            ConfigurationType.TOUCH_SENSOR_MULTIPLEXER,
+            ConfigurationType.COMPASS,
+            ConfigurationType.IR_SEEKER,
+            ConfigurationType.IR_SEEKER_V3,
+            ConfigurationType.ULTRASONIC_SENSOR,
+            ConfigurationType.OPTICAL_DISTANCE_SENSOR,
+            ConfigurationType.LIGHT_SENSOR,
+            ConfigurationType.COLOR_SENSOR,
+            ConfigurationType.ADAFRUIT_COLOR_SENSOR,
+            ConfigurationType.LED,
+            ConfigurationType.DIGITAL_DEVICE,
+            ConfigurationType.ANALOG_INPUT,
+            ConfigurationType.ANALOG_OUTPUT,
+            ConfigurationType.I2C_DEVICE,
+            ConfigurationType.NOTHING
+    };
+
+    public static ConfigurationType MOTOR[] = {
+            ConfigurationType.PULSE_WIDTH_DEVICE,
+            ConfigurationType.MOTOR,
+            ConfigurationType.SERVO
+    };
+
     public static ConfigurationType CONTROLLER[] = {
             ConfigurationType.MOTOR_CONTROLLER,
             ConfigurationType.MATRIX_CONTROLLER,
@@ -87,10 +114,17 @@ public class HardwareConstants {
             ConfigurationType.I2C_DEVICE
     };
 
-    public static boolean partOfGroup(ConfigurationType[] group, ConfigurationType value) {
+    public static boolean partOfGroup(ConfigurationType value, ConfigurationType[] group) {
         for(ConfigurationType type : group) {
             if(value == type) return true;
         }
         return false;
+    }
+
+    public static int typeIndex(ConfigurationType value, ConfigurationType[] group) {
+        for(int index = group.length - 1; index >= 0; index--) {
+            if(group[index] == value) return index;
+        }
+        return -1;
     }
 }

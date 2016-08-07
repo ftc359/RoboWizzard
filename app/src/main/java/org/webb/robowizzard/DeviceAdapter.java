@@ -34,25 +34,43 @@
 package org.webb.robowizzard;
 
 import android.app.Activity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
+import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map.Entry;
 
 public class DeviceAdapter extends BaseAdapter {
     Activity activity;
     List<DeviceConfiguration> deviceList;
-    public DeviceAdapter(Activity activity, List<DeviceConfiguration> deviceList) {
+    public ConfigurationType[] typeList;
+    private int controllerNumber;
+
+    public DeviceAdapter(Activity activity, List<DeviceConfiguration> deviceList, ConfigurationType[] typeList) {
         this.activity = activity;
         this.deviceList = deviceList;
+        this.typeList = typeList;
+        controllerNumber = 0;
     }
 
     @Override
@@ -62,75 +80,150 @@ public class DeviceAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int position) {
+        if(typeList != Constants.MOTOR) {
+            return deviceList.get(deviceList.size() - position - 1);
+        }
         return deviceList.get(position);
     }
 
     @Override
     public long getItemId(int position) {
-        return 0;
+        return ((DeviceConfiguration) getItem(position)).getPort();
     }
 
-    static class ViewHolder {
+    @Override
+    public boolean hasStableIds() {
+        return true;
+    }
+
+    private static class ViewHolder {
         TextView port;
         CheckBox enabled;
         BetterEditText name;
-        Button test;
+        Button editController;
+        Spinner spinner;
     }
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         final DeviceConfiguration device = (DeviceConfiguration) getItem(position);
-        ViewHolder viewHolder = null;
-        DeviceConfiguration.ConfigurationType condition = ((DeviceConfiguration) getItem(position)).getType();
+        final ViewHolder viewHolder;
         if(convertView == null) {
             viewHolder = new ViewHolder();
-            switch(condition) {
-                case MOTOR:
-                    convertView = activity.getLayoutInflater().inflate(R.layout.item_device_motor_and_servo, parent, false);
-                    viewHolder.port = (TextView) convertView.findViewById(R.id.portNumber);
-                    viewHolder.enabled = (CheckBox) convertView.findViewById(R.id.portEnabled);
-                    viewHolder.enabled.setChecked(device.isEnabled());
-                    viewHolder.enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                            device.setEnabled(compoundButton.isEnabled() && b);
-                        }
-                    });
-                    viewHolder.name = (BetterEditText) convertView.findViewById(R.id.portName);
-                    viewHolder.name.setText(device.getName());
-                    viewHolder.name.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                        @Override
-                        public void onFocusChange(View view, boolean b) {
-                            if(!b) {
-                                device.setName(((BetterEditText) view).getText().toString());
-                            }
-                        }
-                    });
-                    break;
-//                case SERVO:
-//                    break;
-                default:
-                    convertView = activity.getLayoutInflater().inflate(R.layout.item_dim_options, parent, false);
-                    viewHolder.test = (Button) convertView.findViewById(R.id.optionButton);
-                    break;
+            if(typeList == Constants.MOTOR) {
+                convertView = activity.getLayoutInflater().inflate(R.layout.item_device_motor_edit, parent, false);
             }
-            if(viewHolder.name != null && getCount() - 1 == position) {
-                viewHolder.name.setImeOptions(EditorInfo.IME_ACTION_DONE);
+            else {
+                convertView = activity.getLayoutInflater().inflate(R.layout.item_device_sensor_and_controller_edit, parent, false);
+            }
+
+            //GENERAL
+            viewHolder.port = (TextView) convertView.findViewById(R.id.portNumber);
+            viewHolder.name = (BetterEditText) convertView.findViewById(R.id.portName);
+            //END OF GENERAL
+
+            if(typeList == Constants.MOTOR) {
+                viewHolder.enabled = (CheckBox) convertView.findViewById(R.id.portEnabled);
+            }
+            else {
+                LinearLayout linearLayout = (LinearLayout) convertView.findViewById(R.id.parent);
+                linearLayout.measure(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                viewHolder.editController = (Button) convertView.findViewById(R.id.editControllerButton);
+                viewHolder.editController.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, linearLayout.getMeasuredHeight() + 2*linearLayout.getPaddingStart()));
+
+                viewHolder.spinner = (Spinner) convertView.findViewById(R.id.spinner);
             }
             convertView.setTag(viewHolder);
         }
         else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
-        switch(condition) {
-            case MOTOR:
-                viewHolder.port.setText(""+device.getPort());
-                break;
-            default:
-                viewHolder.test.setText(((DeviceConfiguration) getItem(position)).getName());
-                break;
+
+        //GENERAL
+        if(device.getType() == ConfigurationType.NOTHING) {
+            device.setEnabled(false);
+            device.setName(DeviceConfiguration.DISABLED_DEVICE_NAME);
+        }
+        viewHolder.port.setText(String.format(Locale.ENGLISH, "%d", device.getPort()));
+        viewHolder.name.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean hasFocus) {
+                if(!hasFocus) {
+                    BetterEditText editText = (BetterEditText) view;
+                    String name = editText.getText().toString();
+                    device.setName(name);
+                    if(name.equals(DeviceConfiguration.DISABLED_DEVICE_NAME)) {
+                        editText.setText("");
+                    }
+                }
+            }
+        });
+        if(!device.getName().equals(DeviceConfiguration.DISABLED_DEVICE_NAME)) {
+            viewHolder.name.setText(device.getName());
+        }
+        else {
+            viewHolder.name.setText("");
+        }
+        viewHolder.name.setEnabled(device.isEnabled() && !Constants.partOfGroup(device.getType(), Constants.CONTROLLER));
+        //END OF GENERAL
+
+        if(typeList == Constants.MOTOR) {
+            viewHolder.enabled.setChecked(device.isEnabled());
+            viewHolder.enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+                    device.setEnabled(compoundButton.isEnabled() && checked);
+                    viewHolder.name.setEnabled(device.isEnabled());
+                    if(!device.isEnabled()) {
+                        viewHolder.name.setText("");
+                        device.setName(DeviceConfiguration.DISABLED_DEVICE_NAME);
+                    }
+                }
+            });
+        }
+        else {
+            viewHolder.editController.setEnabled(device.isEnabled() && Constants.partOfGroup(device.getType(), Constants.CONTROLLER));
+            viewHolder.editController.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Toast.makeText(activity, "WORKING " + device.getPort(), Toast.LENGTH_SHORT).show();
+                    //TODO: Start new DeviceConfigurationActivity
+                }
+            });
+
+            List<ConfigurationType> options = new ArrayList<ConfigurationType>(Arrays.asList(typeList));
+            viewHolder.spinner.setAdapter(new ArrayAdapter<ConfigurationType>(activity, R.layout.support_simple_spinner_dropdown_item, options)); //TODO: make spinner item layout
+            viewHolder.spinner.setSelection(Constants.typeIndex(device.getType(), typeList));
+            viewHolder.spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    ConfigurationType type = (ConfigurationType) parent.getItemAtPosition(position);
+                    device.setType(type);
+                    if(type == ConfigurationType.NOTHING) {
+                        device.setName(DeviceConfiguration.DISABLED_DEVICE_NAME);
+                        device.setEnabled(false);
+                        viewHolder.name.setText("");
+                    }
+                    else {
+                        device.setEnabled(true);
+                    }
+                    viewHolder.name.setEnabled(device.isEnabled() && !Constants.partOfGroup(type, Constants.CONTROLLER));
+                    viewHolder.name.setClickable(viewHolder.name.isEnabled());
+                    viewHolder.editController.setEnabled(device.isEnabled() && Constants.partOfGroup(device.getType(), Constants.CONTROLLER));
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                }
+            });
         }
 
+        if(getCount() - 1 == position) { //Bottommost one
+            viewHolder.name.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        }
+        else {
+            viewHolder.name.setImeOptions(EditorInfo.IME_ACTION_NEXT);
+        }
         return convertView;
     }
 }
