@@ -35,7 +35,7 @@ package org.webb.robowizzard;
 
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.ConfigurationType;
 
-public class Constants {
+public class ConfigurationConstants {
     public static ConfigurationType SENSOR[] = {
             ConfigurationType.GYRO,
             ConfigurationType.ACCELEROMETER,

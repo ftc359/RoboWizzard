@@ -55,14 +55,15 @@ public class DeviceConfigurationActivity extends BaseActivity {
     private ControllerConfiguration controller;
     private List<DeviceConfiguration> deviceList;
     private boolean isDIM;
-    private ListView listView;
+    private LinearLayout list;
+    private DeviceLayout deviceLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_configuration);
         setSupportActionBar((android.support.v7.widget.Toolbar) findViewById(R.id.toolbar));
-        listView = (ListView) findViewById(R.id.deviceList);
+        list = (LinearLayout) findViewById(R.id.deviceList);
         isDIM = false;
 
         controllerIndex = getIntent().getIntExtra("CONTROLLER", -1);
@@ -112,10 +113,10 @@ public class DeviceConfigurationActivity extends BaseActivity {
                 case MOTOR_CONTROLLER:
                 case SERVO_CONTROLLER:
                 case MATRIX_CONTROLLER:
-                    listView.setAdapter(new DeviceAdapter(this, controller.getDevices(), Constants.MOTOR));
+                    deviceLayout = new DeviceLayout(this, list, controller.getDevices(), ConfigurationConstants.MOTOR, true);
                     break;
                 case LEGACY_MODULE_CONTROLLER:
-                    listView.setAdapter(new DeviceAdapter(this, controller.getDevices(), Constants.LEGACY));
+                    deviceLayout = new DeviceLayout(this, list, controller.getDevices(), ConfigurationConstants.LEGACY, true);
                     break;
                 case DEVICE_INTERFACE_MODULE:
                     isDIM = true;
@@ -124,19 +125,19 @@ public class DeviceConfigurationActivity extends BaseActivity {
                     if(deviceType != null) {
                         switch (deviceType) {
                             case DIMOptionAdapter.PWM_DEVICES:
-                                listView.setAdapter(new DeviceAdapter(this, controllerDIM.getPwmDevices(), Constants.MOTOR));
+                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getPwmDevices(), ConfigurationConstants.MOTOR, true);
                                 break;
                             case DIMOptionAdapter.I2C_DEVICES:
-                                listView.setAdapter(new DeviceAdapter(this, controllerDIM.getI2cDevices(), Constants.I2C_DEVICE));
+                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getI2cDevices(), ConfigurationConstants.I2C_DEVICE, true);
                                 break;
                             case DIMOptionAdapter.ANALOG_INPUT_DEVICES:
-                                listView.setAdapter(new DeviceAdapter(this, controllerDIM.getAnalogInputDevices(), Constants.ANALOG_INPUT));
+                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getAnalogInputDevices(), ConfigurationConstants.ANALOG_INPUT, true);
                                 break;
                             case DIMOptionAdapter.DIGITAL_DEVICES:
-                                listView.setAdapter(new DeviceAdapter(this, controllerDIM.getDigitalDevices(), Constants.DIGITAL_DEVICE));
+                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getDigitalDevices(), ConfigurationConstants.DIGITAL_DEVICE, true);
                                 break;
                             case DIMOptionAdapter.ANALOG_OUTPUT_DEVICES:
-                                listView.setAdapter(new DeviceAdapter(this, controllerDIM.getAnalogOutputDevices(), Constants.ANALOG_OUTPUT));
+                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getAnalogOutputDevices(), ConfigurationConstants.ANALOG_OUTPUT, true);
                                 break;
                             default:
                                 break;
@@ -144,7 +145,11 @@ public class DeviceConfigurationActivity extends BaseActivity {
                     }
                     else {
                         parent.removeView(findViewById(R.id.categories));
+                        parent.removeView(findViewById(R.id.scrollView));
+                        ListView listView = new ListView(this);
                         listView.setAdapter(new DIMOptionAdapter(this, (DeviceInterfaceModuleConfiguration) controller, controllerIndex));
+                        listView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1.0F));
+                        parent.addView(listView);
                     }
             }
         }

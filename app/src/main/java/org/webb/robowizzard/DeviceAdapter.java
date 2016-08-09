@@ -34,7 +34,6 @@
 package org.webb.robowizzard;
 
 import android.app.Activity;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -55,10 +54,8 @@ import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration.Configu
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map.Entry;
 
 public class DeviceAdapter extends BaseAdapter {
     Activity activity;
@@ -80,7 +77,7 @@ public class DeviceAdapter extends BaseAdapter {
 
     @Override
     public Object getItem(int position) {
-        if(typeList != Constants.MOTOR) {
+        if(typeList != ConfigurationConstants.MOTOR) {
             return deviceList.get(deviceList.size() - position - 1);
         }
         return deviceList.get(position);
@@ -110,7 +107,7 @@ public class DeviceAdapter extends BaseAdapter {
         final ViewHolder viewHolder;
         if(convertView == null) {
             viewHolder = new ViewHolder();
-            if(typeList == Constants.MOTOR) {
+            if(typeList == ConfigurationConstants.MOTOR) {
                 convertView = activity.getLayoutInflater().inflate(R.layout.item_device_motor_edit, parent, false);
             }
             else {
@@ -122,7 +119,7 @@ public class DeviceAdapter extends BaseAdapter {
             viewHolder.name = (BetterEditText) convertView.findViewById(R.id.portName);
             //END OF GENERAL
 
-            if(typeList == Constants.MOTOR) {
+            if(typeList == ConfigurationConstants.MOTOR) {
                 viewHolder.enabled = (CheckBox) convertView.findViewById(R.id.portEnabled);
             }
             else {
@@ -140,10 +137,6 @@ public class DeviceAdapter extends BaseAdapter {
         }
 
         //GENERAL
-        if(device.getType() == ConfigurationType.NOTHING) {
-            device.setEnabled(false);
-            device.setName(DeviceConfiguration.DISABLED_DEVICE_NAME);
-        }
         viewHolder.port.setText(String.format(Locale.ENGLISH, "%d", device.getPort()));
         viewHolder.name.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -164,10 +157,10 @@ public class DeviceAdapter extends BaseAdapter {
         else {
             viewHolder.name.setText("");
         }
-        viewHolder.name.setEnabled(device.isEnabled() && !Constants.partOfGroup(device.getType(), Constants.CONTROLLER));
+        viewHolder.name.setEnabled(device.isEnabled() && !ConfigurationConstants.partOfGroup(device.getType(), ConfigurationConstants.CONTROLLER));
         //END OF GENERAL
 
-        if(typeList == Constants.MOTOR) {
+        if(typeList == ConfigurationConstants.MOTOR) {
             viewHolder.enabled.setChecked(device.isEnabled());
             viewHolder.enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -182,7 +175,7 @@ public class DeviceAdapter extends BaseAdapter {
             });
         }
         else {
-            viewHolder.editController.setEnabled(device.isEnabled() && Constants.partOfGroup(device.getType(), Constants.CONTROLLER));
+            viewHolder.editController.setEnabled(device.isEnabled() && ConfigurationConstants.partOfGroup(device.getType(), ConfigurationConstants.CONTROLLER));
             viewHolder.editController.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -193,7 +186,7 @@ public class DeviceAdapter extends BaseAdapter {
 
             List<ConfigurationType> options = new ArrayList<ConfigurationType>(Arrays.asList(typeList));
             viewHolder.spinner.setAdapter(new ArrayAdapter<ConfigurationType>(activity, R.layout.support_simple_spinner_dropdown_item, options)); //TODO: make spinner item layout
-            viewHolder.spinner.setSelection(Constants.typeIndex(device.getType(), typeList));
+            viewHolder.spinner.setSelection(ConfigurationConstants.typeIndex(device.getType(), typeList));
             viewHolder.spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -207,9 +200,9 @@ public class DeviceAdapter extends BaseAdapter {
                     else {
                         device.setEnabled(true);
                     }
-                    viewHolder.name.setEnabled(device.isEnabled() && !Constants.partOfGroup(type, Constants.CONTROLLER));
+                    viewHolder.name.setEnabled(device.isEnabled() && !ConfigurationConstants.partOfGroup(type, ConfigurationConstants.CONTROLLER));
                     viewHolder.name.setClickable(viewHolder.name.isEnabled());
-                    viewHolder.editController.setEnabled(device.isEnabled() && Constants.partOfGroup(device.getType(), Constants.CONTROLLER));
+                    viewHolder.editController.setEnabled(device.isEnabled() && ConfigurationConstants.partOfGroup(device.getType(), ConfigurationConstants.CONTROLLER));
                 }
 
                 @Override
