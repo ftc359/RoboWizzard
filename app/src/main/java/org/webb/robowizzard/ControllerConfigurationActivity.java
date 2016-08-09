@@ -218,12 +218,6 @@ public class ControllerConfigurationActivity extends BaseActivity {
         else {
             current.setFilename(filename.getText().toString());
 
-            if(current.contains(new SerialNumber(DEFAULT_SERIAL_NUMBER))) {
-                AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change the serial number(s) from the default.");
-                builder.setNeutralButton("Ok", dummyListener);
-                builder.show();
-                return;
-            }
             if(current.getFilename().equals("") && !saved.getFilename().equals("")) {
                 AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change the layout name from the default.");
                 builder.setNeutralButton("Ok", dummyListener);
@@ -235,6 +229,12 @@ public class ControllerConfigurationActivity extends BaseActivity {
                 builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        if(current.contains(new SerialNumber(DEFAULT_SERIAL_NUMBER))) {
+                            AlertDialog.Builder builder = util.buildBuilder("File Not Saved", "Please change the serial number(s) from the default.");
+                            builder.setNeutralButton("Ok", dummyListener);
+                            builder.show();
+                            return;
+                        }
                         save();
                         ControllerConfigurationActivity.super.onBackPressed();
                         overridePendingTransition(R.anim.fade_in, R.anim.slide_out_horizontal);
