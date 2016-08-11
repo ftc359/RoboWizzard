@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ Copyright (c) 2014, 2015 Qualcomm Technologies Inc
   ~
@@ -31,35 +32,8 @@
   ~ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   -->
 
-<resources>
-    <string name="app_name">RoboWizzard</string>
-    <string name="web_client_id">272707929847-03a44816mrgrlu6g4hc84j51ja24oh16.apps.googleusercontent.com</string>
-    <string name="edit">Edit</string>
-    <string name="export">Export</string>
-    <string name="delete">Delete</string>
-    <string name="item_name">Item</string>
-    <string name="toolbar_run">Run</string>
-    <string name="toolbar_stop">Stop</string>
-    <string name="toolbar_about">About</string>
-    <string name="toolbar_add">New…</string>
-    <string name="toolbar_help">Help</string>
-    <string name="toolbar_save">Save</string>
-    <string name="toolbar_scan">Scan</string>
-    <string name="toolbar_add_layout">New Layout</string>
-    <string name="toolbar_add_import">Import Layout</string>
-    <string name="toolbar_add_motor_controller">New Motor Controller</string>
-    <string name="toolbar_add_servo_controller">New Servo Controller</string>
-    <string name="toolbar_add_legacy_module_controller">New Legacy Module Controller</string>
-    <string name="toolbar_add_device_interface_module">New Device Interface Module</string>
-    <string name="layout_name">Layout Name</string>
-    <string name="controller_name">Controller Name</string>
-    <string name="serial_number">Serial Number</string>
-    <string name="device_name">Device Name</string>
-    <string name="port_number">0</string>
-    <string name="category_port_name">Port</string>
-    <string name="category_attached_device">Attached Device</string>
-    <string name="min">Min</string>
-    <string name="zero">Zero</string>
-    <string name="max">Max</string>
-    <string name="value">Value</string>
-</resources>
+<View xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/spacer_size"
+    android:layout_height="10dp"
+    android:layout_gravity="center"
+    android:background="#66000000"/>

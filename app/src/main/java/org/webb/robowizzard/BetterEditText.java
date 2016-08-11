@@ -89,6 +89,11 @@ public class BetterEditText extends EditText {
         });
     }
 
+    public void setText(String text) {
+        super.setText(text);
+        this.setSelection(this.getText().length());
+    }
+
     private void closeKeyboard() {
         if(this.isFocused()) {
             clearFocus();

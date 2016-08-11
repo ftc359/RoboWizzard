@@ -38,7 +38,10 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
@@ -57,12 +60,14 @@ public class DeviceConfigurationActivity extends BaseActivity {
     private boolean isDIM;
     private LinearLayout list;
     private DeviceLayout deviceLayout;
+    private Button saveButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_device_configuration);
         setSupportActionBar((android.support.v7.widget.Toolbar) findViewById(R.id.toolbar));
+        saveButton = (Button) findViewById(R.id.toolbar_save);
         list = (LinearLayout) findViewById(R.id.deviceList);
         isDIM = false;
 
@@ -113,10 +118,10 @@ public class DeviceConfigurationActivity extends BaseActivity {
                 case MOTOR_CONTROLLER:
                 case SERVO_CONTROLLER:
                 case MATRIX_CONTROLLER:
-                    deviceLayout = new DeviceLayout(this, list, controller.getDevices(), ConfigurationConstants.MOTOR, true);
+                    deviceLayout = new DeviceLayout(this, list, controller.getDevices(), ConfigurationConstants.MOTOR, !running);
                     break;
                 case LEGACY_MODULE_CONTROLLER:
-                    deviceLayout = new DeviceLayout(this, list, controller.getDevices(), ConfigurationConstants.LEGACY, true);
+                    deviceLayout = new DeviceLayout(this, list, controller.getDevices(), ConfigurationConstants.LEGACY, !running);
                     break;
                 case DEVICE_INTERFACE_MODULE:
                     isDIM = true;
@@ -125,19 +130,19 @@ public class DeviceConfigurationActivity extends BaseActivity {
                     if(deviceType != null) {
                         switch (deviceType) {
                             case DIMOptionAdapter.PWM_DEVICES:
-                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getPwmDevices(), ConfigurationConstants.MOTOR, true);
+                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getPwmDevices(), ConfigurationConstants.MOTOR, !running);
                                 break;
                             case DIMOptionAdapter.I2C_DEVICES:
-                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getI2cDevices(), ConfigurationConstants.I2C_DEVICE, true);
+                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getI2cDevices(), ConfigurationConstants.I2C_DEVICE, !running);
                                 break;
                             case DIMOptionAdapter.ANALOG_INPUT_DEVICES:
-                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getAnalogInputDevices(), ConfigurationConstants.ANALOG_INPUT, true);
+                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getAnalogInputDevices(), ConfigurationConstants.ANALOG_INPUT, !running);
                                 break;
                             case DIMOptionAdapter.DIGITAL_DEVICES:
-                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getDigitalDevices(), ConfigurationConstants.DIGITAL_DEVICE, true);
+                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getDigitalDevices(), ConfigurationConstants.DIGITAL_DEVICE, !running);
                                 break;
                             case DIMOptionAdapter.ANALOG_OUTPUT_DEVICES:
-                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getAnalogOutputDevices(), ConfigurationConstants.ANALOG_OUTPUT, true);
+                                deviceLayout = new DeviceLayout(this, list, controllerDIM.getAnalogOutputDevices(), ConfigurationConstants.ANALOG_OUTPUT, !running);
                                 break;
                             default:
                                 break;
@@ -160,6 +165,41 @@ public class DeviceConfigurationActivity extends BaseActivity {
             controller.setName(name.getText().toString());
             if(!launchedBy(DeviceConfigurationActivity.class)) controller.getSerialNumber().setSerialNumber(serialNumber.getText().toString());
         }
+    }
+
+    public void run() {
+        super.run();
+        AlphaAnimation animation = new AlphaAnimation(running?1.0F:0.0F, running?0.0F:1.0F);
+        animation.setDuration(1000);
+        animation.setAnimationListener(new Animation.AnimationListener() { //Placed here so it only activates once
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                int visibility = running?View.INVISIBLE:View.VISIBLE;
+                saveButton.setVisibility(visibility);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+        saveButton.startAnimation(animation);
+
+        if(running) {
+            clearFocus();
+        }
+        name.setClickable(!running);
+        name.setFocusable(!running);
+        name.setFocusableInTouchMode(!running);
+        name.setCursorVisible(!running);
+        serialNumber.setClickable(!running);
+        serialNumber.setFocusable(!running);
+        serialNumber.setFocusableInTouchMode(!running);
+        serialNumber.setCursorVisible(!running);
+        deviceLayout.setEdit(!running);
     }
 
     public void save(View v) {

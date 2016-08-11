@@ -34,7 +34,8 @@
 package org.webb.robowizzard;
 
 import android.app.Activity;
-import android.util.Log;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
@@ -45,6 +46,7 @@ import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -62,7 +64,9 @@ public class DeviceLayout {
     private LinearLayout parent;
     private List<DeviceConfiguration> deviceList;
     private ConfigurationType[] typeList;
+    private List<View> views;
     private boolean edit;
+    private Integer editTextWidth;
 
     public DeviceLayout(Activity activity, LinearLayout parent, List<DeviceConfiguration> deviceList, ConfigurationType[] typeList, boolean edit) {
         this.activity = activity;
@@ -70,6 +74,14 @@ public class DeviceLayout {
         this.deviceList = deviceList;
         this.typeList = typeList;
         this.edit = edit;
+
+        views = new ArrayList<>();
+        for(int i = 0; i < deviceList.size(); i++) {
+            views.add(getEditView(i));
+        }
+        for(int i = 0; i < deviceList.size(); i++) {
+            views.add(getRunView(i));
+        }
 
         this.render();
     }
@@ -80,15 +92,15 @@ public class DeviceLayout {
     }
 
     private void render() {
-        parent.removeAllViews();
         ScrollView scrollView = ((ScrollView) parent.getParent());
         int scrollLocation = scrollView.getScrollY();
+        parent.removeAllViews();
         for(int i = 0; i < deviceList.size(); i++) {
             if(edit) {
-                parent.addView(getEditView(i));
+                parent.addView(views.get(i));
             }
             else {
-                parent.addView(getEditView(i));
+                parent.addView(views.get(i + deviceList.size()));
             }
         }
         scrollView.scrollTo(scrollView.getScrollX(), scrollLocation);
@@ -180,7 +192,6 @@ public class DeviceLayout {
                         return;
                     }
                     ConfigurationType type = (ConfigurationType) parent.getItemAtPosition(position);
-                    Log.d("ASDFASDF", device.getPort() + " " + type);
                     device.setType(type);
                     if (type == ConfigurationType.NOTHING) {
                         device.setName(DeviceConfiguration.DISABLED_DEVICE_NAME);
@@ -204,10 +215,155 @@ public class DeviceLayout {
             editViewHolder.name.setImeOptions(EditorInfo.IME_ACTION_DONE);
         }
         row.setTag(editViewHolder);
+
         return row;
     }
 
+    private static class RunViewHolder {
+        private TextView port;
+        private TextView name;
+        private SeekBar slider;
+        private BetterEditText value;
+        private Button runButton;
+        private boolean eatTextChange, eatSliderChange;
+    }
+
     private View getRunView(int position) {
-        return null;
+        View row;
+        final DeviceConfiguration device = deviceList.get(position);
+        final RunViewHolder runViewHolder = new RunViewHolder();
+
+        if(ConfigurationConstants.partOfGroup(device.getType(), ConfigurationConstants.MOTOR)) {
+            final boolean servo = device.getType() == ConfigurationType.SERVO;
+
+            row = activity.getLayoutInflater().inflate(R.layout.item_device_motor_run, parent, false);
+
+            runViewHolder.port = (TextView) row.findViewById(R.id.portNumber);
+            runViewHolder.port.setText(String.format(Locale.ENGLISH, "%d", device.getPort()));
+
+            runViewHolder.name = (TextView) row.findViewById(R.id.portName);
+            runViewHolder.name.setText(device.getName());
+
+            runViewHolder.slider = (SeekBar) row.findViewById(R.id.slider);
+
+            runViewHolder.value = (BetterEditText) row.findViewById(R.id.value);
+            if(editTextWidth == null) {
+                runViewHolder.value.setText("-0.00");
+                runViewHolder.value.measure(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                editTextWidth = runViewHolder.value.getMeasuredWidth();
+            }
+            runViewHolder.value.setLayoutParams(new LinearLayout.LayoutParams(editTextWidth, LinearLayout.LayoutParams.WRAP_CONTENT));
+            runViewHolder.value.setText(servo?"0.50":"0.00");
+
+            LinearLayout ticks = (LinearLayout) row.findViewById(R.id.ticks);
+            for(int count = 0; count < (servo?4:8); count++) {
+                View blankSpace = new View(activity);
+                blankSpace.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1.0F));
+                ticks.addView(blankSpace);
+                ticks.addView(activity.getLayoutInflater().inflate(R.layout.tick, ticks, false));
+            }
+
+            ((TextView) row.findViewById(R.id.sliderMin)).setText(servo?"0.00":"-1.00");
+            ((TextView) row.findViewById(R.id.sliderZero)).setText(servo?"0.50":"0.00");
+            ((TextView) row.findViewById(R.id.sliderMax)).setText("1.00");
+
+            runViewHolder.eatTextChange = false;
+            runViewHolder.eatSliderChange = false;
+            runViewHolder.slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                    if(runViewHolder.eatSliderChange) {
+                        runViewHolder.eatSliderChange = false;
+                        return;
+                    }
+                    runViewHolder.eatTextChange = true;
+                    if(servo) {
+                        runViewHolder.value.setText(String.format(Locale.ENGLISH, "%.2f", i/200.0));
+                    }
+                    else {
+                        runViewHolder.value.setText(String.format(Locale.ENGLISH, "%.2f", (i-100)/100.0));
+                    }
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+
+                }
+            });
+            runViewHolder.value.addTextChangedListener(new TextWatcher() {
+                String before;
+
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                    before = runViewHolder.value.getText().toString();
+                }
+
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable editable) {
+                    if(runViewHolder.eatTextChange) {
+                        runViewHolder.eatTextChange = false;
+                        return;
+                    }
+                    String editValue = runViewHolder.value.getText().toString();
+                    if(editValue.trim().equals("")) {
+                        return;
+                    }
+                    double value;
+                    try {
+                        value = Double.parseDouble(editValue);
+                        if(servo) {
+                            if(value > 1.00) {
+                                value = 1.00;
+                                runViewHolder.eatTextChange = true;
+                                runViewHolder.value.setText(String.format(Locale.ENGLISH, "%.2f", value));
+                            }
+                            else if(value < 0.00) {
+                                value = 0.00;
+                                runViewHolder.eatTextChange = true;
+                                runViewHolder.value.setText(String.format(Locale.ENGLISH, "%.2f", value));
+                            }
+                            value *= 200;
+                        }
+                        else {
+                            if(value > 1.00) {
+                                value = 1.00;
+                                runViewHolder.eatTextChange = true;
+                                runViewHolder.value.setText(String.format(Locale.ENGLISH, "%.2f", value));
+                            }
+                            else if(value < -1.00) {
+                                value = -1.00;
+                                runViewHolder.value.setText(String.format(Locale.ENGLISH, "%.2f", value));
+                                runViewHolder.eatTextChange = true;
+                            }
+                            value += 1.00;
+                            value *= 100;
+                        }
+                        runViewHolder.eatSliderChange = true;
+                        runViewHolder.slider.setProgress((int) Math.round(value));
+                    }
+                    catch(NumberFormatException e) {
+                        runViewHolder.eatTextChange = true;
+                        runViewHolder.value.setText(before);
+                        e.printStackTrace();
+                        Toast.makeText(activity, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+        else {
+            row = activity.getLayoutInflater().inflate(R.layout.item_dim_options, parent, false);
+        }
+
+        return row;
     }
 }
