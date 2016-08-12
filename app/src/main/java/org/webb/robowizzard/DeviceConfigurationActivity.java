@@ -169,6 +169,7 @@ public class DeviceConfigurationActivity extends BaseActivity {
 
     public void run() {
         super.run();
+        clearFocus();
         AlphaAnimation animation = new AlphaAnimation(running?1.0F:0.0F, running?0.0F:1.0F);
         animation.setDuration(1000);
         animation.setAnimationListener(new Animation.AnimationListener() { //Placed here so it only activates once
@@ -187,10 +188,6 @@ public class DeviceConfigurationActivity extends BaseActivity {
             }
         });
         saveButton.startAnimation(animation);
-
-        if(running) {
-            clearFocus();
-        }
         name.setClickable(!running);
         name.setFocusable(!running);
         name.setFocusableInTouchMode(!running);

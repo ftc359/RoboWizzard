@@ -315,7 +315,7 @@ public class DeviceLayout {
                         return;
                     }
                     String editValue = runViewHolder.value.getText().toString();
-                    if(editValue.trim().equals("")) {
+                    if(editValue.trim().equals("") || editValue.trim().equals(".")) {
                         return;
                     }
                     double value;

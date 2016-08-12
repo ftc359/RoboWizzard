@@ -229,8 +229,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         View focusedView = getCurrentFocus();
         if(focusedView != null) {
             focusedView.clearFocus();
-            ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(focusedView.getWindowToken(), 0);
         }
+        ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(focusedView.getWindowToken(), 0);
     }
 
     @Override
