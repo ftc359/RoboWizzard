@@ -69,7 +69,6 @@ import java.util.Map;
 public abstract class BaseActivity extends AppCompatActivity {
     public static Point screenSize;
     static LayoutFile current, saved;
-    static ArrayList<ControllerConfiguration> currentSetup;
     static boolean running;
     private static List<MenuItem> toggleCallback;
     DialogInterface.OnClickListener dummyListener = new DialogInterface.OnClickListener() {

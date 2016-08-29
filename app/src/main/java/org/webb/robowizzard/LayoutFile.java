@@ -38,6 +38,8 @@ import android.widget.Toast;
 
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
+import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
+import com.qualcomm.robotcore.hardware.configuration.DeviceInterfaceModuleConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.ReadXMLFileHandler;
 import com.qualcomm.robotcore.hardware.configuration.Utility;
 import com.qualcomm.robotcore.util.SerialNumber;
@@ -54,12 +56,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 public class LayoutFile implements Serializable, Iterable<ControllerConfiguration> {
     private String filename;
     private ArrayList<ControllerConfiguration> layoutList;
     private HashMap<SerialNumber, ControllerConfiguration> layoutMap;
     private ArrayList<ControllerConfiguration> duplicates;
+    private final static String TAG = "LAYOUT";
 
     public LayoutFile() {
         this.filename = "";
@@ -74,8 +78,7 @@ public class LayoutFile implements Serializable, Iterable<ControllerConfiguratio
         ArrayList<ControllerConfiguration> layout = new ArrayList<>();
         try {
             layout = (ArrayList<ControllerConfiguration>) new ReadXMLFileHandler(null).parse(new FileInputStream(Utility.CONFIG_FILES_DIR + filename + Utility.FILE_EXT));
-        }
-        catch (FileNotFoundException | RobotCoreException e) {
+        } catch (FileNotFoundException | RobotCoreException e) {
             Log.e("LayoutFile", e.getMessage());
         }
         this.layoutList = new ArrayList<>();
@@ -119,9 +122,9 @@ public class LayoutFile implements Serializable, Iterable<ControllerConfiguratio
 
     public void add(int index, ControllerConfiguration controller) {
         layoutList.add(index, controller);
-        if(this.contains(controller.getSerialNumber())) {
+        if (this.contains(controller.getSerialNumber())) {
             ControllerConfiguration overwrittenController = layoutMap.get(controller.getSerialNumber());
-            if(!duplicates.contains(overwrittenController)) {
+            if (!duplicates.contains(overwrittenController)) {
                 duplicates.add(overwrittenController);
             }
             duplicates.add(controller);
@@ -134,14 +137,14 @@ public class LayoutFile implements Serializable, Iterable<ControllerConfiguratio
     }
 
     public void addAll(ArrayList<ControllerConfiguration> layout) {
-        for(ControllerConfiguration controller : layout) {
+        for (ControllerConfiguration controller : layout) {
             this.add(controller);
         }
     }
 
     public void combine(ArrayList<ControllerConfiguration> layout) {
-        for(ControllerConfiguration controller : layout) {
-            if(!this.contains(controller)) {
+        for (ControllerConfiguration controller : layout) {
+            if (!this.contains(controller)) {
                 this.add(controller);
             }
         }
@@ -177,11 +180,11 @@ public class LayoutFile implements Serializable, Iterable<ControllerConfiguratio
     }
 
     public boolean remove(ControllerConfiguration controller) {
-        if(!this.contains(controller)) {
+        if (!this.contains(controller)) {
             return false;
         }
         layoutList.remove(controller);
-        if(duplicates.remove(controller) && layoutMap.get(controller.getSerialNumber()).equals(controller)) { //Don't delete overloaded serial numbers
+        if (duplicates.remove(controller) && layoutMap.get(controller.getSerialNumber()).equals(controller)) { //Don't delete overloaded serial numbers
             layoutMap.remove(controller.getSerialNumber());
         }
 
@@ -189,7 +192,7 @@ public class LayoutFile implements Serializable, Iterable<ControllerConfiguratio
     }
 
     public boolean remove(SerialNumber serialNumber) {
-        if(!this.contains(serialNumber)) {
+        if (!this.contains(serialNumber)) {
             return false;
         }
         ControllerConfiguration controller = layoutMap.get(serialNumber);
@@ -201,7 +204,7 @@ public class LayoutFile implements Serializable, Iterable<ControllerConfiguratio
     }
 
     public void removeAll(ArrayList<ControllerConfiguration> layout) {
-        for(ControllerConfiguration controller : layout) {
+        for (ControllerConfiguration controller : layout) {
             this.remove(controller);
         }
     }
@@ -242,26 +245,80 @@ public class LayoutFile implements Serializable, Iterable<ControllerConfiguratio
 
     @Override
     public boolean equals(final Object obj) {
-        if(this == obj) return true;
-        if(obj == null || !(obj instanceof LayoutFile)) return false;
+        if (this == obj) return true;
+        if (obj == null || !(obj instanceof LayoutFile)) return false;
 
-        LayoutFile layoutFile = (LayoutFile) obj;
+        LayoutFile otherLayout = (LayoutFile) obj;
 
-        try { // "Hack" to use serialization to compare the objects
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-            objectOutputStream.writeObject(this);
-            byte[] mData = byteArrayOutputStream.toByteArray();
-            byteArrayOutputStream = new ByteArrayOutputStream();
-            objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-            objectOutputStream.writeObject(obj);
-            byte[] otherData = byteArrayOutputStream.toByteArray();
-            return Arrays.equals(mData, otherData);
+        if(!filename.equals(otherLayout.filename)) return false;
+
+        List<ControllerConfiguration> otherLayoutList = otherLayout.layoutList;
+
+        if(layoutList.size() != otherLayoutList.size()) return false;
+
+        for(int index = 0; index < layoutList.size(); index++) {
+            if(!equals(layoutList.get(index), otherLayout.get(index))) return false;
         }
-        catch (IOException e) {
-            e.printStackTrace();
-            return false;
+
+        return true;
+    }
+
+    private boolean deviceEquals(DeviceConfiguration a, DeviceConfiguration b) {
+        Log.d(TAG, "NAME - " + a.getName() + " " + b.getName());
+        if (!a.getName().equals(b.getName())) return false;
+        Log.d(TAG, "PORT - " + a.getPort() + " " + b.getPort());
+        if (a.getPort() != b.getPort()) return false;
+        Log.d(TAG, "TYPE - " + a.getType() + " " + b.getType());
+        if (a.getType() != b.getType()) return false;
+
+        return true;
+    }
+
+    private boolean equals(DeviceConfiguration a, DeviceConfiguration b) {
+        return deviceEquals(a, b);
+    }
+
+    private boolean equals(ControllerConfiguration a, ControllerConfiguration b) {
+        if(!deviceEquals(a, b)) return false;
+        Log.d(TAG, "SERIAL_NUMBER - " + a.getSerialNumber() + " " + b.getSerialNumber());
+        if(!a.getSerialNumber().equals(b.getSerialNumber())) return false;
+
+        List<List<DeviceConfiguration>> listA = new ArrayList<>();
+        List<List<DeviceConfiguration>> listB = new ArrayList<>();
+
+        if(a instanceof DeviceInterfaceModuleConfiguration && b instanceof DeviceInterfaceModuleConfiguration) {
+            DeviceInterfaceModuleConfiguration x = (DeviceInterfaceModuleConfiguration) a;
+            DeviceInterfaceModuleConfiguration y = (DeviceInterfaceModuleConfiguration) b;
+
+            listA.add(x.getPwmDevices());
+            listA.add(x.getI2cDevices());
+            listA.add(x.getAnalogInputDevices());
+            listA.add(x.getDigitalDevices());
+            listA.add(x.getAnalogOutputDevices());
+
+            listB.add(y.getPwmDevices());
+            listB.add(y.getI2cDevices());
+            listB.add(y.getAnalogInputDevices());
+            listB.add(y.getDigitalDevices());
+            listB.add(y.getAnalogOutputDevices());
         }
+        listA.add(a.getDevices());
+        listB.add(b.getDevices());
+
+        if(listA.size() != listB.size()) return false;
+
+        for(int list = 0; list < listA.size(); list++) {
+            List<DeviceConfiguration> list1 = listA.get(list);
+            List<DeviceConfiguration> list2 = listB.get(list);
+
+            if(list1.size() != list2.size()) return false;
+
+            for(int index = 0; index < list1.size(); index++) {
+                if(!equals(list1.get(index), list2.get(index))) return false;
+            }
+        }
+
+        return true;
     }
 
     public LayoutFile createCopy() { // "Hack" to use serialization to create a deep copy of this
