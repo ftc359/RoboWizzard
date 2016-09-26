@@ -49,6 +49,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.qualcomm.hardware.HardwareDeviceManager;
+import com.qualcomm.modernrobotics.ModernRoboticsUsbUtil;
 import com.qualcomm.robotcore.eventloop.EventLoopManager;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DeviceManager;
@@ -56,6 +57,7 @@ import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.Utility;
 import com.qualcomm.robotcore.hardware.configuration.WriteXMLFileHandler;
+import com.qualcomm.robotcore.hardware.usb.ftdi.RobotUsbManagerFtdi;
 import com.qualcomm.robotcore.util.SerialNumber;
 
 import java.io.File;
@@ -188,11 +190,14 @@ public abstract class BaseActivity extends AppCompatActivity {
                         case MODERN_ROBOTICS_USB_DEVICE_INTERFACE_MODULE:
                             temp.add(this.util.buildDeviceInterfaceModule(serialNumber));
                             break;
+                        default:
+                            Toast.makeText(this, "SN: " + serialNumber + " Type: " + entry.getValue(), Toast.LENGTH_SHORT).show();
                     }
                 }
             }
         }
         catch(RobotCoreException e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
             temp.clear();
         }
         if(temp.size() == 0) {
