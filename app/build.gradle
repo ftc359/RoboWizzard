@@ -71,6 +71,7 @@ dependencies {
     compile(name: 'Hardware-release', ext: 'aar')
     compile(name: 'ModernRobotics-release', ext: 'aar')
     compile(name: 'RobotCore-release', ext: 'aar')
+    compile(name: 'Analytics-release', ext: 'aar')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })

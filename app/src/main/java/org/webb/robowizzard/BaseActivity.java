@@ -40,6 +40,7 @@ import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -48,15 +49,21 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ftdi.j2xx.D2xxManager;
+import com.ftdi.j2xx.FT_Device;
 import com.qualcomm.hardware.HardwareDeviceManager;
 import com.qualcomm.modernrobotics.ModernRoboticsUsbUtil;
 import com.qualcomm.robotcore.eventloop.EventLoopManager;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DeviceManager;
+import com.qualcomm.robotcore.hardware.DigitalChannelController;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.Utility;
 import com.qualcomm.robotcore.hardware.configuration.WriteXMLFileHandler;
+import com.qualcomm.robotcore.hardware.usb.RobotUsbDevice;
+import com.qualcomm.robotcore.hardware.usb.RobotUsbManager;
+import com.qualcomm.robotcore.hardware.usb.ftdi.RobotUsbDeviceFtdi;
 import com.qualcomm.robotcore.hardware.usb.ftdi.RobotUsbManagerFtdi;
 import com.qualcomm.robotcore.util.SerialNumber;
 
@@ -78,6 +85,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
     };
     Utility util;
+    private Context context;
 
 
     final static String DEFAULT_SERIAL_NUMBER = "SERIAL_NUMBER";
@@ -87,6 +95,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+        this.context = this;
         util = new Utility(this);
         if(getClass().getCanonicalName().equals(MainActivity.class.getCanonicalName())) {
             toggleCallback = new ArrayList<MenuItem>();
@@ -165,16 +174,15 @@ public abstract class BaseActivity extends AppCompatActivity {
     public boolean scan() {
         final LayoutFile temp = new LayoutFile();
         try {
-            HardwareDeviceManager scanner = new HardwareDeviceManager(this, (EventLoopManager) null);
+            HardwareDeviceManager scanner = new HardwareDeviceManager(this.context, (EventLoopManager) null);
             Iterator deviceIterator = (scanner.scanForUsbDevices().entrySet()).iterator();
 
             this.util.resetCount();
             while(deviceIterator.hasNext()) {
                 Map.Entry entry = (Map.Entry) deviceIterator.next();
-                ControllerConfiguration controller = (ControllerConfiguration) entry.getValue();
                 SerialNumber serialNumber = (SerialNumber) entry.getKey();
-                if(current.contains(controller)) {
-                    temp.add(controller);
+                if(current.contains(serialNumber)) {
+                    temp.add(current.get(serialNumber));
                 }
                 else {
                     switch((DeviceManager.DeviceType) entry.getValue()) {
@@ -191,13 +199,14 @@ public abstract class BaseActivity extends AppCompatActivity {
                             temp.add(this.util.buildDeviceInterfaceModule(serialNumber));
                             break;
                         default:
-                            Toast.makeText(this, "SN: " + serialNumber + " Type: " + entry.getValue(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "SN: " + serialNumber + " Type: " + entry.getValue(), Toast.LENGTH_LONG).show();
+                            break;
                     }
                 }
             }
         }
-        catch(RobotCoreException e){
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        catch(Exception e){
+            Toast.makeText(this, "Error! " + e.getMessage(), Toast.LENGTH_LONG).show();
             temp.clear();
         }
         if(temp.size() == 0) {
