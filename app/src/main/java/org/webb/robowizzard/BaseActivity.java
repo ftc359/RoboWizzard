@@ -85,7 +85,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
     };
     Utility util;
-    private Context context;
+    protected Context context;
 
 
     final static String DEFAULT_SERIAL_NUMBER = "SERIAL_NUMBER";

@@ -35,11 +35,17 @@ package org.webb.robowizzard;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
 import com.qualcomm.robotcore.util.SerialNumber;
 
@@ -47,7 +53,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
     private List<String> mList = new ArrayList<String>();
 
     @Override
@@ -62,6 +68,9 @@ public class MainActivity extends BaseActivity {
         current = new LayoutFile();
         saved = new LayoutFile();
         running = false;
+
+        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
+        GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this.context).enableAutoManage(this, this).addApi(Auth.GOOGLE_SIGN_IN_API, googleSignInOptions).build();
     }
 
     @Override
@@ -102,5 +111,10 @@ public class MainActivity extends BaseActivity {
 
     public void help(View v){
         showHelp("File Configuration", "This displays the configuration files found. Touch one to edit it or swipe left for more options. To create or import a file, touch the plus button. To run the current configuration, press the play button.");
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d("MainActivity", "onConnectionFailed" + connectionResult.getErrorMessage());
     }
 }
