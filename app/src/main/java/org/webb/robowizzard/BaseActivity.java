@@ -39,6 +39,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -49,41 +50,39 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ftdi.j2xx.D2xxManager;
-import com.ftdi.j2xx.FT_Device;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.qualcomm.hardware.HardwareDeviceManager;
-import com.qualcomm.modernrobotics.ModernRoboticsUsbUtil;
 import com.qualcomm.robotcore.eventloop.EventLoopManager;
 import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.DeviceManager;
-import com.qualcomm.robotcore.hardware.DigitalChannelController;
-import com.qualcomm.robotcore.hardware.configuration.ControllerConfiguration;
-import com.qualcomm.robotcore.hardware.configuration.DeviceConfiguration;
 import com.qualcomm.robotcore.hardware.configuration.Utility;
 import com.qualcomm.robotcore.hardware.configuration.WriteXMLFileHandler;
-import com.qualcomm.robotcore.hardware.usb.RobotUsbDevice;
-import com.qualcomm.robotcore.hardware.usb.RobotUsbManager;
-import com.qualcomm.robotcore.hardware.usb.ftdi.RobotUsbDeviceFtdi;
-import com.qualcomm.robotcore.hardware.usb.ftdi.RobotUsbManagerFtdi;
 import com.qualcomm.robotcore.util.SerialNumber;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public abstract class BaseActivity extends AppCompatActivity {
+public abstract class BaseActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
     public static Point screenSize;
     static LayoutFile current, saved;
     static boolean running;
-    private static List<MenuItem> toggleCallback;
+    private static List<MenuItem> runToggleCallback, signInToggleCallback;
     DialogInterface.OnClickListener dummyListener = new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int button) {
         }
     };
+    private GoogleSignInOptions googleSignInOptions;
+    private GoogleApiClient mGoogleApiClient;
+    public GoogleSignInAccount account = null;
     Utility util;
     protected Context context;
 
@@ -91,6 +90,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     final static String DEFAULT_SERIAL_NUMBER = "SERIAL_NUMBER";
     final static String RUN_ID = "NULL_LAYOUT";
     final static int DEVICE_CONFIG = 1;
+    private final static int RC_SIGN_IN = 0xFF;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -98,10 +98,14 @@ public abstract class BaseActivity extends AppCompatActivity {
         this.context = this;
         util = new Utility(this);
         if(getClass().getCanonicalName().equals(MainActivity.class.getCanonicalName())) {
-            toggleCallback = new ArrayList<MenuItem>();
+            runToggleCallback = new ArrayList<MenuItem>();
+            signInToggleCallback = new ArrayList<MenuItem>();
             screenSize = new Point();
+            googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
+            mGoogleApiClient = new GoogleApiClient.Builder(this.context).enableAutoManage(this, this).addApi(Auth.GOOGLE_SIGN_IN_API, googleSignInOptions).build();
         }
         ((WindowManager) this.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getSize(screenSize);
+        toggleSignInIcons();
     }
 
     @Override
@@ -114,16 +118,46 @@ public abstract class BaseActivity extends AppCompatActivity {
                 startActivity(new Intent(this, AboutActivity.class));
                 overridePendingTransition(R.anim.slide_in_vertical, R.anim.fade_out);
                 break;
+            case R.id.authenticate_button:
+                if(account == null) {
+                    signIn();
+                }
+                else {
+                    signOut();
+                }
             default:
                 return super.onOptionsItemSelected(item);
         }
         return true;
     }
 
+    public void signIn() {
+        Intent intent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
+        startActivityForResult(intent, RC_SIGN_IN);
+    }
+
+    public void signOut() {
+        account = null;
+        toggleSignInIcons();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == RC_SIGN_IN) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            if(result.isSuccess()) {
+                account = result.getSignInAccount();
+                toggleSignInIcons();
+            }
+        }
+    }
+
     public void run(){
         running = !running;
-        for(MenuItem item : toggleCallback) {
-            toggleIcon(item);
+        for(MenuItem item : runToggleCallback) {
+            toggleRunIcon(item);
         }
     }
 
@@ -250,21 +284,39 @@ public abstract class BaseActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu){
         getMenuInflater().inflate(R.menu.main_menu, menu);
         MenuItem runButton = menu.findItem(R.id.run_button);
-        toggleIcon(runButton);
-        if(!toggleCallback.contains(runButton)) {
-            toggleCallback.add(runButton);
+        toggleRunIcon(runButton);
+        if(!runToggleCallback.contains(runButton)) {
+            runToggleCallback.add(runButton);
+        }
+
+        MenuItem signInButton = menu.findItem(R.id.authenticate_button);
+        if(!signInToggleCallback.contains(signInButton)) {
+            signInToggleCallback.add(signInButton);
         }
         return true;
     }
 
-    private void toggleIcon(MenuItem item) {
+    private void toggleRunIcon(MenuItem item) {
         item.setIcon((running) ? R.drawable.ic_stop : R.drawable.ic_start);
         item.setTitle((running) ? R.string.toolbar_stop : R.string.toolbar_run);
+    }
+
+    private void toggleSignInIcons() {
+        for(MenuItem item : signInToggleCallback) {
+            boolean signedIn = account != null;
+            item.setIcon((signedIn) ? R.drawable.ic_logout : R.drawable.ic_login);
+            item.setTitle((signedIn) ? "Sign Out of " + account.getDisplayName() : "Sign In");
+        }
     }
 
     public static File getFile(String filename) {
         filename = Utility.CONFIG_FILES_DIR + filename + Utility.FILE_EXT;
         filename = filename.trim();
         return new File(filename);
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.d("MainActivity", "onConnectionFailed" + connectionResult.getErrorMessage());
     }
 }

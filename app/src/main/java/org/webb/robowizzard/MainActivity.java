@@ -53,7 +53,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class MainActivity extends BaseActivity implements GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends BaseActivity {
     private List<String> mList = new ArrayList<String>();
 
     @Override
@@ -68,9 +68,6 @@ public class MainActivity extends BaseActivity implements GoogleApiClient.OnConn
         current = new LayoutFile();
         saved = new LayoutFile();
         running = false;
-
-        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
-        GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this.context).enableAutoManage(this, this).addApi(Auth.GOOGLE_SIGN_IN_API, googleSignInOptions).build();
     }
 
     @Override
@@ -94,7 +91,7 @@ public class MainActivity extends BaseActivity implements GoogleApiClient.OnConn
                         current = new LayoutFile();
                         saved = new LayoutFile();
                         startActivity(new Intent(MainActivity.this, ControllerConfigurationActivity.class));
-                        //overridePendingTransition(R.anim.slide_in_horizontal, R.anim.fade_out);
+                        overridePendingTransition(R.anim.slide_in_horizontal, R.anim.fade_out);
                         break;
                     case R.id.importLayout:
                         //TODO: Import layout
@@ -111,10 +108,5 @@ public class MainActivity extends BaseActivity implements GoogleApiClient.OnConn
 
     public void help(View v){
         showHelp("File Configuration", "This displays the configuration files found. Touch one to edit it or swipe left for more options. To create or import a file, touch the plus button. To run the current configuration, press the play button.");
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.d("MainActivity", "onConnectionFailed" + connectionResult.getErrorMessage());
     }
 }

@@ -62,4 +62,5 @@
     <string name="zero">Zero</string>
     <string name="max">Max</string>
     <string name="value">Value</string>
+    <string name="sign_in">Sign In</string>
 </resources>
